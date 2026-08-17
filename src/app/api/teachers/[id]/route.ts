@@ -1,0 +1,72 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getAuthUser } from '@/lib/auth';
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const auth = getAuthUser(req);
+  if (!auth || auth.role !== 'admin') {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { id } = await params;
+    const teacherId = Number(id);
+    const body = await req.json();
+    const { nip, name, subject, phone, email, status } = body;
+
+    if (!nip || !name || !subject) {
+      return NextResponse.json(
+        { message: 'NIP, Nama Guru, dan Mata Pelajaran wajib diisi.' },
+        { status: 400 }
+      );
+    }
+
+    const teacher = await prisma.teacher.update({
+      where: { id: teacherId },
+      data: {
+        nip,
+        name,
+        subject,
+        phone: phone || null,
+        email: email || null,
+        status: status || 'Aktif',
+      },
+    });
+
+    return NextResponse.json({ message: 'Data guru berhasil diperbarui', teacher });
+  } catch (error: any) {
+    return NextResponse.json(
+      { message: error.message || 'Gagal memperbarui data guru' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const auth = getAuthUser(req);
+  if (!auth || auth.role !== 'admin') {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { id } = await params;
+    const teacherId = Number(id);
+
+    await prisma.teacher.delete({
+      where: { id: teacherId },
+    });
+
+    return NextResponse.json({ message: 'Data guru berhasil dihapus' });
+  } catch (error: any) {
+    return NextResponse.json(
+      { message: error.message || 'Gagal menghapus data guru' },
+      { status: 500 }
+    );
+  }
+}

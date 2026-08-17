@@ -1,0 +1,142 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { Badge } from '@/components/ui/Badge';
+import { api } from '@/lib/api';
+import { GraduationCap, Calendar, Trophy, Bell, BookOpen, Clock } from 'lucide-react';
+
+interface AcademicData {
+  jadwal_pelajaran: any[];
+  jadwal_ujian: any[];
+  prestasi: any[];
+  kegiatan: any[];
+  pengumuman: any[];
+  all: any[];
+}
+
+export default function ParentAcademicsPage() {
+  const [data, setData] = useState<AcademicData | null>(null);
+  const [activeTab, setActiveTab] = useState<'semua' | 'jadwal_pelajaran' | 'jadwal_ujian' | 'prestasi' | 'pengumuman'>('semua');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAcademicInfo();
+  }, []);
+
+  const fetchAcademicInfo = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/academic');
+      setData(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout allowedRole="parent">
+        <div className="py-20 text-center text-slate-500">
+          <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          Memuat informasi akademik...
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const getFilteredItems = () => {
+    if (!data) return [];
+    if (activeTab === 'jadwal_pelajaran') return data.jadwal_pelajaran;
+    if (activeTab === 'jadwal_ujian') return data.jadwal_ujian;
+    if (activeTab === 'prestasi') return data.prestasi;
+    if (activeTab === 'pengumuman') return [...data.pengumuman, ...data.kegiatan];
+    return data.all;
+  };
+
+  const filteredItems = getFilteredItems();
+
+  const getBadge = (cat: string) => {
+    switch (cat) {
+      case 'Jadwal Pelajaran':
+        return <Badge variant="info">Jadwal Pelajaran</Badge>;
+      case 'Jadwal Ujian':
+        return <Badge variant="warning">Jadwal Ujian</Badge>;
+      case 'Prestasi':
+        return <Badge variant="success">Prestasi Siswa</Badge>;
+      case 'Kegiatan':
+        return <Badge variant="purple">Kegiatan Sekolah</Badge>;
+      default:
+        return <Badge variant="slate">Pengumuman</Badge>;
+    }
+  };
+
+  return (
+    <DashboardLayout allowedRole="parent">
+      <div className="space-y-6 animate-fade-in">
+        {/* Header */}
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Informasi Akademik Sekolah</h2>
+          <p className="text-sm text-slate-600">
+            Jadwal pelajaran, kalender ujian, pencapaian prestasi, dan pengumuman resmi
+          </p>
+        </div>
+
+        {/* Tab Filters */}
+        <div className="flex flex-wrap gap-2 pb-2 border-b border-slate-200">
+          {[
+            { id: 'semua', label: 'Semua Informasi', icon: GraduationCap },
+            { id: 'jadwal_pelajaran', label: 'Jadwal Pelajaran', icon: BookOpen },
+            { id: 'jadwal_ujian', label: 'Jadwal Ujian', icon: Calendar },
+            { id: 'prestasi', label: 'Prestasi Siswa', icon: Trophy },
+            { id: 'pengumuman', label: 'Pengumuman & Kegiatan', icon: Bell },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-xs transition-all ${
+                  isActive
+                    ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30'
+                    : 'bg-white border border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filteredItems.length === 0 ? (
+            <div className="col-span-full py-12 text-center text-slate-500">
+              Tidak ada informasi pada kategori ini.
+            </div>
+          ) : (
+            filteredItems.map((item) => (
+              <div key={item.id} className="glass-card rounded-2xl p-6 border border-emerald-100 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  {getBadge(item.category)}
+                  <span className="text-[11px] font-mono text-slate-500 flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-slate-400" />
+                    {item.date}
+                  </span>
+                </div>
+                <h3 className="text-base font-bold text-slate-900">{item.title}</h3>
+                <p className="text-xs text-slate-600 whitespace-pre-line leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
