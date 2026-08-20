@@ -2,5 +2,9 @@
   command = "npm run build"
   publish = ".next"
 
+[build.environment]
+  DATABASE_URL = "file:./prisma/dev.db"
+
 [functions]
   included_files = ["prisma/dev.db", "prisma/schema.prisma"]
+
