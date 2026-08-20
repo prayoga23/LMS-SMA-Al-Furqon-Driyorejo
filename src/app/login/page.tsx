@@ -199,7 +199,7 @@ export default function LoginPage() {
           <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
             SMA AL - FURQON DRIYOREJO
           </span>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight mt-2">SIM SMA AL - FURQON</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight mt-2">LMS SMA AL - FURQON</h2>
           <p className="text-xs text-slate-500 mt-1">Sistem Pemantauan Siswa untuk Orang Tua & Sekolah</p>
         </div>
 
@@ -302,7 +302,7 @@ export default function LoginPage() {
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  Masuk ke SIM SMA AL - FURQON
+                  Masuk ke LMS SMA AL - FURQON
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

@@ -1,5 +1,6 @@
 import { PrismaClient as StandardPrismaClient } from '@prisma/client';
 import path from 'path';
+import fs from 'fs';
 
 declare const __non_webpack_require__: any;
 
@@ -7,7 +8,90 @@ const globalForPrisma = globalThis as unknown as {
   prisma: any;
 };
 
+const getDatabaseUrl = (): string => {
+  const envUrl = process.env.DATABASE_URL;
+
+  // Remote connection strings (PostgreSQL, MySQL, Turso, etc.)
+  if (envUrl && !envUrl.startsWith('file:')) {
+    return envUrl;
+  }
+
+  const isServerless =
+    Boolean(process.env.NETLIFY) ||
+    Boolean(process.env.VERCEL) ||
+    Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
+    process.env.NODE_ENV === 'production';
+
+  if (isServerless) {
+    const tmpDbPath = path.join('/tmp', 'dev.db');
+
+    const possibleSources = [
+      path.join(process.cwd(), 'prisma', 'dev.db'),
+      path.join(process.cwd(), 'dev.db'),
+      path.resolve(__dirname, '..', '..', 'prisma', 'dev.db'),
+      path.resolve(__dirname, '..', 'prisma', 'dev.db'),
+      '/var/task/prisma/dev.db',
+      '/var/task/dev.db',
+    ];
+
+    let foundSource: string | null = null;
+    for (const src of possibleSources) {
+      if (fs.existsSync(/*turbopackIgnore: true*/ src)) {
+        foundSource = src;
+        break;
+      }
+    }
+
+    if (foundSource) {
+      try {
+        const srcStat = fs.statSync(/*turbopackIgnore: true*/ foundSource);
+        let shouldCopy = !fs.existsSync(/*turbopackIgnore: true*/ tmpDbPath);
+        if (!shouldCopy) {
+          const tmpStat = fs.statSync(/*turbopackIgnore: true*/ tmpDbPath);
+          if (srcStat.mtimeMs > tmpStat.mtimeMs) {
+            shouldCopy = true;
+          }
+        }
+
+        if (shouldCopy) {
+          fs.copyFileSync(/*turbopackIgnore: true*/ foundSource, tmpDbPath);
+          try {
+            fs.chmodSync(/*turbopackIgnore: true*/ tmpDbPath, 0o666);
+          } catch {}
+        }
+        return `file:${tmpDbPath}`;
+      } catch (err) {
+        console.error('Failed to copy SQLite database to /tmp:', err);
+      }
+    }
+
+    if (fs.existsSync(/*turbopackIgnore: true*/ tmpDbPath)) {
+      return `file:${tmpDbPath}`;
+    }
+  }
+
+  if (envUrl) {
+    return envUrl;
+  }
+
+  const defaultPath = path.join(process.cwd(), 'prisma', 'dev.db');
+  if (fs.existsSync(/*turbopackIgnore: true*/ defaultPath)) {
+    return `file:${defaultPath}`;
+  }
+  return 'file:./prisma/dev.db';
+};
+
 const getFreshPrismaClient = (): any => {
+  const dbUrl = getDatabaseUrl();
+  const prismaOptions = {
+    datasources: {
+      db: {
+        url: dbUrl,
+      },
+    },
+    log: ['error', 'warn'] as any,
+  };
+
   try {
     const dynamicRequire =
       typeof __non_webpack_require__ !== 'undefined'
@@ -25,7 +109,7 @@ const getFreshPrismaClient = (): any => {
     }
 
     const { PrismaClient: FreshClient } = dynamicRequire(prismaClientPath);
-    const client = new FreshClient({ log: ['error', 'warn'] });
+    const client = new FreshClient(prismaOptions);
     if (client && client.teacher) {
       return client;
     }
@@ -33,7 +117,7 @@ const getFreshPrismaClient = (): any => {
     // Fallback if dynamic require fails
   }
 
-  return new StandardPrismaClient({ log: ['error', 'warn'] });
+  return new StandardPrismaClient(prismaOptions);
 };
 
 const getClient = (): any => {
@@ -65,3 +149,4 @@ export const prisma = new Proxy({} as any, {
     return value;
   },
 });
+
