@@ -13,7 +13,21 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   try {
     const body = await req.json();
-    const { nis, name, class: studentClass, major, entry_year, parent_name, parent_phone } = body;
+    const {
+      nis,
+      name,
+      class: studentClass,
+      major,
+      entry_year,
+      parent_name,
+      parent_phone,
+      is_santri,
+      residence_type,
+      spp_nominal,
+      activity_nominal,
+      has_discount,
+      discount_notes,
+    } = body;
 
     const student = await prisma.student.update({
       where: { id: studentId },
@@ -23,6 +37,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         class: studentClass,
         major,
         entryYear: entry_year ? Number(entry_year) : undefined,
+        isSantri: is_santri !== undefined ? Boolean(is_santri) : undefined,
+        residenceType: residence_type !== undefined ? residence_type : undefined,
+        sppNominal: spp_nominal !== undefined ? Number(spp_nominal) : undefined,
+        activityNominal: activity_nominal !== undefined ? Number(activity_nominal) : undefined,
+        hasDiscount: has_discount !== undefined ? Boolean(has_discount) : undefined,
+        discountNotes: discount_notes !== undefined ? discount_notes : undefined,
       },
       include: {
         parent: {

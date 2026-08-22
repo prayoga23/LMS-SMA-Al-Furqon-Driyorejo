@@ -74,10 +74,15 @@ async function main() {
       class: 'X IPA 1',
       major: 'IPA (MIPA)',
       entryYear: 2024,
+      isSantri: true,
+      residenceType: 'Asrama',
+      sppNominal: 750000,
+      activityNominal: 200000,
+      hasDiscount: false,
     },
   });
 
-  // 3. Parent 2 & Student 2
+  // 3. Parent 2 & Student 2 (Santri Asrama dengan Keringanan tarif lebih murah)
   const parentUser2 = await prisma.user.create({
     data: {
       name: 'Siti Aminah',
@@ -97,14 +102,20 @@ async function main() {
     data: {
       parentId: parentUser2.parent!.id,
       nis: '20231045',
-      name: 'Dewi Lestari',
+      name: 'Dewi Lestari (Keringanan Santri)',
       class: 'XI IPS 1',
       major: 'IPS',
       entryYear: 2023,
+      isSantri: true,
+      residenceType: 'Asrama',
+      sppNominal: 400000, // Tarif lebih murah (keringanan)
+      activityNominal: 100000, // Tarif kegiatan lebih murah
+      hasDiscount: true,
+      discountNotes: 'Pengajuan Keringanan Santri Yatim / Ekonomi',
     },
   });
 
-  // 4. Parent 3 & Student 3
+  // 4. Parent 3 & Student 3 (Non-Santri / Non-Asrama)
   const parentUser3 = await prisma.user.create({
     data: {
       name: 'Hendra Pratama',
@@ -128,39 +139,98 @@ async function main() {
       class: 'X IPA 1',
       major: 'IPA (MIPA)',
       entryYear: 2024,
+      isSantri: false,
+      residenceType: 'Non-Asrama',
+      sppNominal: 500000,
+      activityNominal: 150000,
+      hasDiscount: false,
     },
   });
 
-  // Seed SPP Payments
+  // Seed SPP & Anggaran Kegiatan Payments with Saluran Dana
   await prisma.payment.createMany({
     data: [
+      // Student 1 (Santri Asrama Regular)
       {
         studentId: student1.id,
+        category: 'SPP',
+        destination: 'Yayasan Pondok Pesantren Al-Furqon',
+        title: 'SPP Bulanan / Semester 1',
         semester: 'Semester 1',
         academicYear: '2024/2025',
-        amount: 500000,
+        amount: 750000,
         status: 'Lunas',
+        notes: 'Disalurkan ke Yayasan Pondok Pesantren Al-Furqon',
       },
       {
         studentId: student1.id,
+        category: 'Kegiatan',
+        destination: 'Sekolah (SMA Al-Furqon)',
+        title: 'Anggaran Kegiatan Pembelajaran & Ekstrakurikuler',
+        semester: 'Semester 1',
+        academicYear: '2024/2025',
+        amount: 200000,
+        status: 'Lunas',
+        notes: 'Disalurkan ke Rekening Sekolah (SMA Al-Furqon)',
+      },
+      {
+        studentId: student1.id,
+        category: 'SPP',
+        destination: 'Yayasan Pondok Pesantren Al-Furqon',
+        title: 'SPP Bulanan / Semester 2',
         semester: 'Semester 2',
         academicYear: '2024/2025',
-        amount: 500000,
+        amount: 750000,
         status: 'Belum Lunas',
+        notes: 'Tagihan SPP Semester 2 ke Yayasan',
+      },
+
+      // Student 2 (Santri Asrama dengan Keringanan)
+      {
+        studentId: student2.id,
+        category: 'SPP',
+        destination: 'Yayasan Pondok Pesantren Al-Furqon',
+        title: 'SPP Bulanan (Tarif Khusus Keringanan)',
+        semester: 'Semester 1',
+        academicYear: '2024/2025',
+        amount: 400000,
+        status: 'Lunas',
+        notes: 'Disetujui Keringanan SPP Yayasan Al-Furqon',
       },
       {
         studentId: student2.id,
+        category: 'Kegiatan',
+        destination: 'Sekolah (SMA Al-Furqon)',
+        title: 'Anggaran Kegiatan Sekolah (Keringanan)',
+        semester: 'Semester 1',
+        academicYear: '2024/2025',
+        amount: 100000,
+        status: 'Belum Lunas',
+        notes: 'Tagihan Anggaran Kegiatan Sekolah',
+      },
+
+      // Student 3 (Non-Santri / Non-Asrama)
+      {
+        studentId: student3.id,
+        category: 'SPP',
+        destination: 'Yayasan Pondok Pesantren Al-Furqon',
+        title: 'SPP Bulanan Siswa Reguler',
         semester: 'Semester 1',
         academicYear: '2024/2025',
         amount: 500000,
         status: 'Lunas',
+        notes: 'Setoran SPP Yayasan Al-Furqon',
       },
       {
         studentId: student3.id,
+        category: 'Kegiatan',
+        destination: 'Sekolah (SMA Al-Furqon)',
+        title: 'Anggaran Kegiatan & Praktikum Sekolah',
         semester: 'Semester 1',
         academicYear: '2024/2025',
-        amount: 500000,
+        amount: 150000,
         status: 'Lunas',
+        notes: 'Setoran Kegiatan ke Sekolah',
       },
     ],
   });

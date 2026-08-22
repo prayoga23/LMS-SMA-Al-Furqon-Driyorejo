@@ -11,10 +11,14 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const studentId = searchParams.get('student_id');
   const status = searchParams.get('status');
+  const category = searchParams.get('category');
+  const destination = searchParams.get('destination');
 
   const where: any = {};
   if (studentId) where.studentId = Number(studentId);
   if (status) where.status = status;
+  if (category) where.category = category;
+  if (destination) where.destination = destination;
 
   const payments = await prisma.payment.findMany({
     where,
@@ -33,23 +37,47 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { student_id, semester, academic_year, amount, status } = body;
+    const {
+      student_id,
+      category = 'SPP',
+      destination,
+      title,
+      semester,
+      academic_year,
+      amount,
+      status,
+      notes,
+    } = body;
+
+    // Determine destination automatically based on category if not provided
+    const finalDestination =
+      destination ||
+      (category === 'Kegiatan'
+        ? 'Sekolah (SMA Al-Furqon)'
+        : 'Yayasan Pondok Pesantren Al-Furqon');
 
     const payment = await prisma.payment.create({
       data: {
         studentId: Number(student_id),
+        category,
+        destination: finalDestination,
+        title: title || (category === 'Kegiatan' ? 'Anggaran Kegiatan Sekolah' : 'SPP Bulanan / Semester'),
         semester,
         academicYear: academic_year,
         amount: Number(amount),
-        status,
+        status: status || 'Belum Lunas',
+        notes: notes || null,
       },
       include: { student: true },
     });
 
-    return NextResponse.json({
-      message: 'Pembayaran SPP berhasil ditambahkan',
-      payment,
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        message: 'Tagihan pembayaran berhasil ditambahkan',
+        payment,
+      },
+      { status: 201 }
+    );
   } catch (error: any) {
     return NextResponse.json({ message: error.message || 'Gagal membuat pembayaran' }, { status: 500 });
   }

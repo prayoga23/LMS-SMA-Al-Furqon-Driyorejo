@@ -17,6 +17,18 @@ export async function GET(req: NextRequest) {
   });
   const totalSppPaid = lunasPayments._sum.amount || 0;
 
+  const yayasanLunas = await prisma.payment.aggregate({
+    where: { status: 'Lunas', category: 'SPP' },
+    _sum: { amount: true },
+  });
+  const totalYayasanPaid = yayasanLunas._sum.amount || 0;
+
+  const sekolahLunas = await prisma.payment.aggregate({
+    where: { status: 'Lunas', category: 'Kegiatan' },
+    _sum: { amount: true },
+  });
+  const totalSekolahPaid = sekolahLunas._sum.amount || 0;
+
   const totalAttendanceCount = await prisma.attendance.count();
   const hadirCount = await prisma.attendance.count({ where: { status: 'Hadir' } });
   const attendancePercentage = totalAttendanceCount > 0
@@ -61,6 +73,8 @@ export async function GET(req: NextRequest) {
     total_students: totalStudents,
     total_parents: totalParents,
     total_spp_paid: totalSppPaid,
+    total_yayasan_paid: totalYayasanPaid,
+    total_sekolah_paid: totalSekolahPaid,
     attendance_percentage: attendancePercentage,
     average_grade: averageGrade,
     latest_payments: latestPayments,

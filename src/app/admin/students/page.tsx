@@ -43,6 +43,18 @@ interface Student {
   major: string;
   entry_year?: number;
   entryYear?: number;
+  isSantri?: boolean;
+  is_santri?: boolean;
+  residenceType?: string;
+  residence_type?: string;
+  sppNominal?: number;
+  spp_nominal?: number;
+  activityNominal?: number;
+  activity_nominal?: number;
+  hasDiscount?: boolean;
+  has_discount?: boolean;
+  discountNotes?: string;
+  discount_notes?: string;
   parent?: {
     id: number;
     phone: string;
@@ -99,6 +111,12 @@ export default function AdminStudentsPage() {
     parent_name: '',
     parent_email: '',
     parent_phone: '',
+    is_santri: false,
+    residence_type: 'Non-Asrama',
+    spp_nominal: '500000',
+    activity_nominal: '150000',
+    has_discount: false,
+    discount_notes: '',
   });
 
   // Batch Attendance State per Kelas & Jurusan
@@ -253,12 +271,18 @@ export default function AdminStudentsPage() {
     setFormData({
       nis: '',
       name: '',
-      class: 'X RPL 1',
-      major: 'Rekayasa Perangkat Lunak',
+      class: 'X IPA 1',
+      major: 'IPA (MIPA)',
       entry_year: '2024',
       parent_name: '',
       parent_email: '',
       parent_phone: '',
+      is_santri: false,
+      residence_type: 'Non-Asrama',
+      spp_nominal: '500000',
+      activity_nominal: '150000',
+      has_discount: false,
+      discount_notes: '',
     });
     setError('');
     setIsAddModalOpen(true);
@@ -275,6 +299,12 @@ export default function AdminStudentsPage() {
       parent_name: student.parent?.user?.name || '',
       parent_email: student.parent?.user?.email || '',
       parent_phone: student.parent?.phone || '',
+      is_santri: Boolean(student.isSantri ?? student.is_santri ?? false),
+      residence_type: student.residenceType || student.residence_type || 'Non-Asrama',
+      spp_nominal: String(student.sppNominal ?? student.spp_nominal ?? 500000),
+      activity_nominal: String(student.activityNominal ?? student.activity_nominal ?? 150000),
+      has_discount: Boolean(student.hasDiscount ?? student.has_discount ?? false),
+      discount_notes: student.discountNotes || student.discount_notes || '',
     });
     setError('');
     setIsEditModalOpen(true);
@@ -444,10 +474,10 @@ export default function AdminStudentsPage() {
                 <tr>
                   <th className="py-3.5 px-4">NIS</th>
                   <th className="py-3.5 px-4">Nama Siswa</th>
+                  <th className="py-3.5 px-4">Kategori & Status</th>
+                  <th className="py-3.5 px-4">Tarif Pembayaran</th>
                   <th className="py-3.5 px-4">Kelas & Jurusan</th>
-                  <th className="py-3.5 px-4">Tahun Masuk</th>
                   <th className="py-3.5 px-4">Orang Tua / Wali</th>
-                  <th className="py-3.5 px-4">Kontak Orang Tua</th>
                   <th className="py-3.5 px-4 text-center">Aksi</th>
                 </tr>
               </thead>
@@ -468,39 +498,71 @@ export default function AdminStudentsPage() {
                     </td>
                   </tr>
                 ) : (
-                  students.map((s) => (
-                    <tr key={s.id} className="hover:bg-emerald-50/40 transition-colors">
-                      <td className="py-3.5 px-4 font-mono font-bold text-emerald-800">{s.nis}</td>
-                      <td className="py-3.5 px-4 font-bold text-slate-900">{s.name}</td>
-                      <td className="py-3.5 px-4">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-bold text-slate-800">{s.class}</span>
-                          <span className="text-[10px] text-slate-500 font-medium">{s.major}</span>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <Badge variant="emerald">{s.entryYear || s.entry_year}</Badge>
-                      </td>
-                      <td className="py-3.5 px-4 font-semibold text-slate-800">
-                        {s.parent?.user?.name ? (
-                          <div className="flex items-center gap-1.5">
-                            <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>{s.parent.user.name}</span>
+                  students.map((s) => {
+                    const isSantri = Boolean(s.isSantri ?? s.is_santri);
+                    const residence = s.residenceType || s.residence_type || 'Non-Asrama';
+                    const spp = s.sppNominal ?? s.spp_nominal ?? 500000;
+                    const activity = s.activityNominal ?? s.activity_nominal ?? 150000;
+                    const hasDiscount = Boolean(s.hasDiscount ?? s.has_discount);
+                    const discountNotes = s.discountNotes || s.discount_notes;
+
+                    return (
+                      <tr key={s.id} className="hover:bg-emerald-50/40 transition-colors">
+                        <td className="py-3.5 px-4 font-mono font-bold text-emerald-800">{s.nis}</td>
+                        <td className="py-3.5 px-4 font-bold text-slate-900">
+                          <div>
+                            <span>{s.name}</span>
+                            {hasDiscount && (
+                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200" title={discountNotes || 'Keringanan Biaya'}>
+                                Keringanan
+                              </span>
+                            )}
                           </div>
-                        ) : (
-                          <span className="text-slate-400 font-normal">-</span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 font-mono text-emerald-700 font-semibold">
-                        {s.parent?.phone ? (
-                          <div className="flex items-center gap-1.5">
-                            <Phone className="w-3.5 h-3.5 text-slate-400" />
-                            <span>{s.parent.phone}</span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="flex flex-wrap gap-1">
+                            <Badge variant={isSantri ? 'success' : 'slate'}>
+                              {isSantri ? 'Santri' : 'Non-Santri'}
+                            </Badge>
+                            <Badge variant={residence === 'Asrama' ? 'purple' : 'info'}>
+                              {residence}
+                            </Badge>
                           </div>
-                        ) : (
-                          <span className="text-slate-400 font-normal font-sans">-</span>
-                        )}
-                      </td>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="space-y-0.5 text-[11px]">
+                            <div className="text-amber-900 font-semibold" title="Saluran: Yayasan Pondok Pesantren Al-Furqon">
+                              SPP: Rp {Number(spp).toLocaleString('id-ID')}
+                            </div>
+                            <div className="text-emerald-800 font-medium" title="Saluran: Sekolah (SMA Al-Furqon)">
+                              Kegiatan: Rp {Number(activity).toLocaleString('id-ID')}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-bold text-slate-800">{s.class}</span>
+                            <span className="text-[10px] text-slate-500 font-medium">{s.major}</span>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 font-semibold text-slate-800">
+                          {s.parent?.user?.name ? (
+                            <div className="flex flex-col gap-0.5">
+                              <div className="flex items-center gap-1">
+                                <UserCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                <span>{s.parent.user.name}</span>
+                              </div>
+                              {s.parent.phone && (
+                                <div className="flex items-center gap-1 text-[10px] text-slate-500 font-mono">
+                                  <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                                  <span>{s.parent.phone}</span>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 font-normal">-</span>
+                          )}
+                        </td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center justify-center gap-1.5">
                           <button
@@ -520,7 +582,8 @@ export default function AdminStudentsPage() {
                         </div>
                       </td>
                     </tr>
-                  ))
+                  );
+                })
                 )}
               </tbody>
             </table>
@@ -853,7 +916,89 @@ export default function AdminStudentsPage() {
             </div>
 
             <div className="pt-2 border-t border-slate-100">
-              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">2. Informasi Orang Tua / Wali</h4>
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">
+                2. Status Santri & Tarif Pembayaran Tersendiri
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-amber-50/40 p-3.5 rounded-xl border border-amber-100 mb-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1.5 uppercase">
+                    Status Santri Pondok
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 text-xs font-medium cursor-pointer text-slate-800">
+                      <input
+                        type="radio"
+                        name="is_santri_add"
+                        checked={formData.is_santri === true}
+                        onChange={() => setFormData({ ...formData, is_santri: true })}
+                        className="text-amber-600 focus:ring-amber-500"
+                      />
+                      Santri Pondok
+                    </label>
+                    <label className="flex items-center gap-2 text-xs font-medium cursor-pointer text-slate-800">
+                      <input
+                        type="radio"
+                        name="is_santri_add"
+                        checked={formData.is_santri === false}
+                        onChange={() => setFormData({ ...formData, is_santri: false })}
+                        className="text-amber-600 focus:ring-amber-500"
+                      />
+                      Non-Santri
+                    </label>
+                  </div>
+                </div>
+
+                <FormSelect
+                  label="Status Tempat Tinggal"
+                  value={formData.residence_type}
+                  onChange={(e) => setFormData({ ...formData, residence_type: e.target.value })}
+                >
+                  <option value="Non-Asrama">Non-Asrama (Pulang-Pergi)</option>
+                  <option value="Asrama">Asrama Pondok</option>
+                </FormSelect>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormInput
+                  label="Nominal SPP Tersendiri (Rp)"
+                  type="number"
+                  value={formData.spp_nominal}
+                  onChange={(e) => setFormData({ ...formData, spp_nominal: e.target.value })}
+                  helperText="Saluran: Yayasan Pondok Pesantren Al-Furqon"
+                />
+                <FormInput
+                  label="Nominal Anggaran Kegiatan (Rp)"
+                  type="number"
+                  value={formData.activity_nominal}
+                  onChange={(e) => setFormData({ ...formData, activity_nominal: e.target.value })}
+                  helperText="Saluran: Sekolah (SMA Al-Furqon)"
+                />
+              </div>
+
+              <div className="mt-3 bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.has_discount}
+                    onChange={(e) => setFormData({ ...formData, has_discount: e.target.checked })}
+                    className="rounded text-amber-600 focus:ring-amber-500"
+                  />
+                  Siswa Meminta / Mendapat Keringanan Biaya (Diskon Khusus)
+                </label>
+
+                {formData.has_discount && (
+                  <FormInput
+                    label="Catatan / Permohonan Keringanan"
+                    placeholder="Misal: Keringanan Santri Yatim / Permohonan Wali"
+                    value={formData.discount_notes}
+                    onChange={(e) => setFormData({ ...formData, discount_notes: e.target.value })}
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100">
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">3. Informasi Orang Tua / Wali</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormInput
                   label="Nama Orang Tua / Wali"
@@ -986,7 +1131,89 @@ export default function AdminStudentsPage() {
             </div>
 
             <div className="pt-2 border-t border-slate-100">
-              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">2. Informasi Orang Tua / Wali</h4>
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">
+                2. Status Santri & Tarif Pembayaran Tersendiri
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-amber-50/40 p-3.5 rounded-xl border border-amber-100 mb-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1.5 uppercase">
+                    Status Santri Pondok
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 text-xs font-medium cursor-pointer text-slate-800">
+                      <input
+                        type="radio"
+                        name="is_santri_edit"
+                        checked={formData.is_santri === true}
+                        onChange={() => setFormData({ ...formData, is_santri: true })}
+                        className="text-amber-600 focus:ring-amber-500"
+                      />
+                      Santri Pondok
+                    </label>
+                    <label className="flex items-center gap-2 text-xs font-medium cursor-pointer text-slate-800">
+                      <input
+                        type="radio"
+                        name="is_santri_edit"
+                        checked={formData.is_santri === false}
+                        onChange={() => setFormData({ ...formData, is_santri: false })}
+                        className="text-amber-600 focus:ring-amber-500"
+                      />
+                      Non-Santri
+                    </label>
+                  </div>
+                </div>
+
+                <FormSelect
+                  label="Status Tempat Tinggal"
+                  value={formData.residence_type}
+                  onChange={(e) => setFormData({ ...formData, residence_type: e.target.value })}
+                >
+                  <option value="Non-Asrama">Non-Asrama (Pulang-Pergi)</option>
+                  <option value="Asrama">Asrama Pondok</option>
+                </FormSelect>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormInput
+                  label="Nominal SPP Tersendiri (Rp)"
+                  type="number"
+                  value={formData.spp_nominal}
+                  onChange={(e) => setFormData({ ...formData, spp_nominal: e.target.value })}
+                  helperText="Saluran: Yayasan Pondok Pesantren Al-Furqon"
+                />
+                <FormInput
+                  label="Nominal Anggaran Kegiatan (Rp)"
+                  type="number"
+                  value={formData.activity_nominal}
+                  onChange={(e) => setFormData({ ...formData, activity_nominal: e.target.value })}
+                  helperText="Saluran: Sekolah (SMA Al-Furqon)"
+                />
+              </div>
+
+              <div className="mt-3 bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.has_discount}
+                    onChange={(e) => setFormData({ ...formData, has_discount: e.target.checked })}
+                    className="rounded text-amber-600 focus:ring-amber-500"
+                  />
+                  Siswa Meminta / Mendapat Keringanan Biaya (Diskon Khusus)
+                </label>
+
+                {formData.has_discount && (
+                  <FormInput
+                    label="Catatan / Permohonan Keringanan"
+                    placeholder="Misal: Keringanan Santri Yatim / Permohonan Wali"
+                    value={formData.discount_notes}
+                    onChange={(e) => setFormData({ ...formData, discount_notes: e.target.value })}
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100">
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">3. Informasi Orang Tua / Wali</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormInput
                   label="Nama Orang Tua / Wali"

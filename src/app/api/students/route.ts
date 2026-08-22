@@ -56,7 +56,23 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { nis, name, class: studentClass, major, entry_year, parent_id, parent_name, parent_email, parent_phone } = body;
+    const {
+      nis,
+      name,
+      class: studentClass,
+      major,
+      entry_year,
+      parent_id,
+      parent_name,
+      parent_email,
+      parent_phone,
+      is_santri,
+      residence_type,
+      spp_nominal,
+      activity_nominal,
+      has_discount,
+      discount_notes,
+    } = body;
 
     if (!nis || !name || !studentClass || !major) {
       return NextResponse.json({ message: 'Lengkapi data nis, name, class, dan major.' }, { status: 400 });
@@ -96,6 +112,12 @@ export async function POST(req: NextRequest) {
         class: studentClass,
         major,
         entryYear: entry_year ? Number(entry_year) : new Date().getFullYear(),
+        isSantri: Boolean(is_santri),
+        residenceType: residence_type || 'Non-Asrama',
+        sppNominal: spp_nominal ? Number(spp_nominal) : 500000,
+        activityNominal: activity_nominal ? Number(activity_nominal) : 150000,
+        hasDiscount: Boolean(has_discount),
+        discountNotes: discount_notes || null,
       },
       include: {
         parent: {

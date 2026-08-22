@@ -13,21 +13,25 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   try {
     const body = await req.json();
-    const { semester, academic_year, amount, status } = body;
+    const { category, destination, title, semester, academic_year, amount, status, notes } = body;
 
     const payment = await prisma.payment.update({
       where: { id: paymentId },
       data: {
+        category,
+        destination,
+        title,
         semester,
         academicYear: academic_year,
-        amount: Number(amount),
+        amount: amount !== undefined ? Number(amount) : undefined,
         status,
+        notes,
       },
       include: { student: true },
     });
 
     return NextResponse.json({
-      message: 'Pembayaran SPP berhasil diperbarui',
+      message: 'Data pembayaran berhasil diperbarui',
       payment,
     });
   } catch (error: any) {

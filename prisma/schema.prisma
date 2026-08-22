@@ -33,16 +33,22 @@ model Parents {
 }
 
 model Student {
-  id        Int      @id @default(autoincrement())
-  parentId  Int
-  parent    Parents  @relation(fields: [parentId], references: [id], onDelete: Cascade)
-  nis       String   @unique
-  name      String
-  class     String
-  major     String
-  entryYear Int      @default(2024)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              Int      @id @default(autoincrement())
+  parentId        Int
+  parent          Parents  @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  nis             String   @unique
+  name            String
+  class           String
+  major           String
+  entryYear       Int      @default(2024)
+  isSantri        Boolean  @default(false)
+  residenceType   String   @default("Non-Asrama")
+  sppNominal      Float    @default(500000)
+  activityNominal Float    @default(150000)
+  hasDiscount     Boolean  @default(false)
+  discountNotes   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   payments    Payment[]
   attendance  Attendance[]
@@ -56,10 +62,14 @@ model Payment {
   id           Int      @id @default(autoincrement())
   studentId    Int
   student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  category     String   @default("SPP")
+  destination  String   @default("Yayasan Pondok Pesantren Al-Furqon")
+  title        String?
   semester     String
   academicYear String
   amount       Float
   status       String   @default("Belum Lunas")
+  notes        String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
