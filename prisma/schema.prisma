@@ -82,6 +82,8 @@ model Attendance {
   student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   date      String
   status    String   @default("Hadir")
+  subject   String?
+  session   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

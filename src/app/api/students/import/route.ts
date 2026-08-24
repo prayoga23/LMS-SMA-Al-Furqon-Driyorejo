@@ -5,7 +5,7 @@ import { getAuthUser } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   const auth = getAuthUser(req);
-  if (!auth || auth.role !== 'admin') {
+  if (!auth || !['admin', 'guru', 'staff'].includes(auth.role)) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
@@ -27,92 +27,123 @@ export async function POST(req: NextRequest) {
     const defaultPassword = await bcrypt.hash('password123', 10);
 
     for (let i = 0; i < students.length; i++) {
-      const item = students[i];
-      const nis = String(item.nis || '').trim();
-      const name = String(item.name || '').trim();
-      const className = String(item.class || 'X RPL 1').trim();
-      const major = String(item.major || 'Rekayasa Perangkat Lunak').trim();
-      const entryYear = Number(item.entry_year) || 2024;
-      const parentName = item.parent_name ? String(item.parent_name).trim() : `Wali ${name}`;
-      const parentEmail = item.parent_email ? String(item.parent_email).trim() : `ortu_${nis}@sekolah.sch.id`;
-      const parentPhone = item.parent_phone ? String(item.parent_phone).trim() : null;
+      try {
+        const item = students[i];
+        const nis = String(item.nis || item.NIS || '').trim();
+        const name = String(item.name || item.name_siswa || item['Nama Siswa'] || '').trim();
+        const className = String(item.class || item.kelas || 'X IPA 1').trim();
+        const major = String(item.major || item.jurusan || 'IPA (MIPA)').trim();
+        const entryYear = Number(item.entryYear || item.entry_year || item['Tahun Masuk']) || 2024;
+        
+        const isSantri = Boolean(item.isSantri || item.is_santri || item.santri);
+        const residenceType = String(item.residenceType || item.residence_type || 'Non-Asrama').trim();
+        const sppNominal = Number(item.sppNominal || item.spp_nominal) || 500000;
+        const activityNominal = Number(item.activityNominal || item.activity_nominal) || 150000;
 
-      if (!nis || !name) {
-        errors.push(`Baris ${i + 1}: NIS dan Nama siswa wajib diisi.`);
-        continue;
-      }
+        const parentName = item.parent_name || item.parentName
+          ? String(item.parent_name || item.parentName).trim()
+          : `Wali ${name}`;
+          
+        let parentEmail = item.parent_email || item.parentEmail
+          ? String(item.parent_email || item.parentEmail).trim()
+          : `ortu_${nis}@sekolah.sch.id`;
 
-      // Find or create parent user
-      let parentUser = await prisma.user.findUnique({
-        where: { email: parentEmail },
-        include: { parent: true },
-      });
+        if (!parentEmail.includes('@')) {
+          parentEmail = `ortu_${nis}@sekolah.sch.id`;
+        }
 
-      let parentId: number;
+        const parentPhone = item.parent_phone || item.parentPhone
+          ? String(item.parent_phone || item.parentPhone).trim()
+          : null;
 
-      if (!parentUser) {
-        parentUser = await prisma.user.create({
-          data: {
-            name: parentName,
-            email: parentEmail,
-            password: defaultPassword,
-            role: 'parent',
-            parent: {
-              create: {
-                phone: parentPhone,
-              },
-            },
-          },
+        if (!nis || !name) {
+          errors.push(`Baris ${i + 1}: NIS (${nis || 'kosong'}) atau Nama Siswa wajib diisi.`);
+          continue;
+        }
+
+        // Find or create parent user
+        let parentUser = await prisma.user.findUnique({
+          where: { email: parentEmail },
           include: { parent: true },
         });
-        parentId = parentUser.parent!.id;
-      } else if (!parentUser.parent) {
-        const p = await prisma.parents.create({
-          data: {
-            userId: parentUser.id,
-            phone: parentPhone,
-          },
-        });
-        parentId = p.id;
-      } else {
-        parentId = parentUser.parent.id;
-        if (parentPhone) {
-          await prisma.parents.update({
-            where: { id: parentId },
-            data: { phone: parentPhone },
+
+        let parentId: number;
+
+        if (!parentUser) {
+          parentUser = await prisma.user.create({
+            data: {
+              name: parentName,
+              email: parentEmail,
+              password: defaultPassword,
+              role: 'parent',
+              parent: {
+                create: {
+                  phone: parentPhone,
+                },
+              },
+            },
+            include: { parent: true },
           });
+          parentId = parentUser.parent!.id;
+        } else if (!parentUser.parent) {
+          const p = await prisma.parents.create({
+            data: {
+              userId: parentUser.id,
+              phone: parentPhone,
+            },
+          });
+          parentId = p.id;
+        } else {
+          parentId = parentUser.parent.id;
+          if (parentPhone) {
+            await prisma.parents.update({
+              where: { id: parentId },
+              data: { phone: parentPhone },
+            });
+          }
         }
-      }
 
-      // Check if student exists
-      const existingStudent = await prisma.student.findUnique({
-        where: { nis },
-      });
+        // Check if student exists
+        const existingStudent = await prisma.student.findUnique({
+          where: { nis },
+        });
 
-      if (existingStudent) {
-        await prisma.student.update({
-          where: { id: existingStudent.id },
-          data: {
-            name,
-            class: className,
-            major,
-            entryYear,
-            parentId,
-          },
-        });
-        updateCount++;
-      } else {
-        await prisma.student.create({
-          data: {
-            nis,
-            name,
-            class: className,
-            major,
-            entryYear,
-            parentId,
-          },
-        });
-        successCount++;
+        if (existingStudent) {
+          await prisma.student.update({
+            where: { id: existingStudent.id },
+            data: {
+              name,
+              class: className,
+              major,
+              entryYear,
+              parentId,
+              isSantri,
+              residenceType,
+              sppNominal,
+              activityNominal,
+            },
+          });
+          updateCount++;
+        } else {
+          await prisma.student.create({
+            data: {
+              nis,
+              name,
+              class: className,
+              major,
+              entryYear,
+              parentId,
+              isSantri,
+              residenceType,
+              sppNominal,
+              activityNominal,
+            },
+          });
+          successCount++;
+        }
+      } catch (rowErr: any) {
+        console.error(`Error processing row ${i + 1}:`, rowErr);
+        errors.push(`Baris ${i + 1}: ${rowErr.message || 'Gagal memproses baris data ini.'}`);
       }
     }
 

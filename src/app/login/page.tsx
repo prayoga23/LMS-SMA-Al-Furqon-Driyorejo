@@ -113,7 +113,7 @@ export default function LoginPage() {
 
     try {
       const user = await login(loginEmail, loginPassword);
-      if (user.role === 'admin') {
+      if (['admin', 'guru', 'staff'].includes(user.role)) {
         router.push('/admin/dashboard');
       } else {
         router.push('/parent/dashboard');

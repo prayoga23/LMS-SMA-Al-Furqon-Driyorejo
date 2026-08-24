@@ -21,11 +21,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Email atau password salah.' }, { status: 401 });
     }
 
+    let teacherData = null;
+    if (user.role === 'guru') {
+      teacherData = await prisma.teacher.findFirst({
+        where: {
+          OR: [
+            { email: user.email },
+            { name: user.name },
+          ],
+        },
+      });
+    }
+
     const token = signToken({
       id: user.id,
       email: user.email,
-      role: user.role as 'admin' | 'parent',
+      role: user.role,
       parentId: user.parent?.id,
+      subject: teacherData?.subject || null,
+      teacherId: teacherData?.id || null,
     });
 
     return NextResponse.json({
@@ -38,6 +52,8 @@ export async function POST(req: NextRequest) {
         email: user.email,
         role: user.role,
         parent_id: user.parent ? user.parent.id : null,
+        subject: teacherData?.subject || null,
+        teacher_id: teacherData?.id || null,
       },
     });
   } catch (error: any) {

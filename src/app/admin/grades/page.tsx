@@ -7,6 +7,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Toast, ToastMessage } from '@/components/ui/Toast';
 import { FormInput, FormSelect, FormStudentCombobox } from '@/components/ui/InputComponents';
 import { api } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 import {
   Plus,
   Edit,
@@ -20,6 +21,7 @@ import {
   Sparkles,
   RefreshCw,
   X,
+  Lock,
 } from 'lucide-react';
 
 interface Grade {
@@ -56,9 +58,13 @@ const POPULAR_SUBJECTS = [
 ];
 
 export default function AdminGradesPage() {
+  const { user } = useAuth();
   const [grades, setGrades] = useState<Grade[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const isGuru = user?.role === 'guru';
+  const teacherSubject = user?.subject || '';
 
   // Filters
   const [search, setSearch] = useState('');
@@ -151,7 +157,7 @@ export default function AdminGradesPage() {
     setError('');
     setFormData({
       student_id: students.length > 0 ? students[0].id.toString() : '',
-      subject: POPULAR_SUBJECTS[0],
+      subject: isGuru && teacherSubject ? teacherSubject : POPULAR_SUBJECTS[0],
       semester: 'Semester 1',
       score: 80,
       predicate: 'B',
@@ -252,6 +258,28 @@ export default function AdminGradesPage() {
             Input Nilai Mata Pelajaran
           </button>
         </div>
+
+        {/* Banner Mode Guru */}
+        {isGuru && (
+          <div className="bg-gradient-to-r from-emerald-800 to-teal-800 text-white rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-emerald-700/50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-bold text-white shrink-0 border border-white/20">
+                <BookOpen className="w-5 h-5 text-emerald-200" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-sm tracking-tight flex items-center gap-2">
+                  Mode Pengelolaan Nilai Guru ({user?.name})
+                </h3>
+                <p className="text-xs text-emerald-100 mt-0.5">
+                  Anda memiliki akses penilai khusus untuk Mata Pelajaran: <span className="font-black text-amber-300 underline">{teacherSubject || 'Sesuai Penugasan'}</span> (Bagi seluruh siswa Kelas X - XII)
+                </p>
+              </div>
+            </div>
+            <Badge variant="emerald" className="bg-emerald-950/60 text-emerald-200 border border-emerald-400/40 px-3 py-1 text-xs">
+              Mapel: {teacherSubject || 'Guru'}
+            </Badge>
+          </div>
+        )}
 
         {/* Toolbar */}
         <div className="bg-white rounded-2xl p-4 border border-purple-100 shadow-xs flex flex-col lg:flex-row gap-3 items-center justify-between">
@@ -425,24 +453,33 @@ export default function AdminGradesPage() {
                 <FormInput
                   label="Mata Pelajaran"
                   required
-                  icon={BookOpen}
+                  icon={isGuru ? Lock : BookOpen}
                   placeholder="Pemrograman Web"
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                  disabled={isGuru}
+                  readOnly={isGuru}
                 />
-                <div className="flex flex-wrap items-center gap-1 mt-1.5">
-                  <span className="text-[10px] text-slate-400 font-medium mr-0.5">Cepat:</span>
-                  {POPULAR_SUBJECTS.slice(0, 3).map((sub) => (
-                    <button
-                      key={sub}
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, subject: sub }))}
-                      className="text-[10px] px-1.5 py-0.5 rounded bg-white text-slate-600 hover:text-emerald-700 hover:border-emerald-300 border border-slate-200 transition-colors"
-                    >
-                      {sub.split(' ')[0]}
-                    </button>
-                  ))}
-                </div>
+                {isGuru ? (
+                  <p className="text-[10px] text-emerald-700 font-semibold mt-1.5 flex items-center gap-1">
+                    <Lock className="w-3 h-3 text-emerald-600" />
+                    Mapel dikunci khusus sesuai bidang penugasan Anda
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                    <span className="text-[10px] text-slate-400 font-medium mr-0.5">Cepat:</span>
+                    {POPULAR_SUBJECTS.slice(0, 3).map((sub) => (
+                      <button
+                        key={sub}
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, subject: sub }))}
+                        className="text-[10px] px-1.5 py-0.5 rounded bg-white text-slate-600 hover:text-emerald-700 hover:border-emerald-300 border border-slate-200 transition-colors"
+                      >
+                        {sub.split(' ')[0]}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <FormSelect
@@ -555,9 +592,11 @@ export default function AdminGradesPage() {
               <FormInput
                 label="Mata Pelajaran"
                 required
-                icon={BookOpen}
+                icon={isGuru ? Lock : BookOpen}
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                disabled={isGuru}
+                readOnly={isGuru}
               />
               <FormSelect
                 label="Semester"

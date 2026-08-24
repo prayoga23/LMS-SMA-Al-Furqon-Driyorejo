@@ -1,5 +1,15 @@
 import * as XLSX from 'xlsx';
 
+export interface TargetFieldDef {
+  key: string;
+  label: string;
+  required?: boolean;
+  description?: string;
+  aliases?: string[];
+  type?: 'string' | 'number' | 'boolean';
+  defaultValue?: any;
+}
+
 export const downloadStudentExcelTemplate = () => {
   const data = [
     {
@@ -56,22 +66,176 @@ export const downloadTeacherExcelTemplate = () => {
   XLSX.writeFile(workbook, 'Template_Import_Guru_SMA_AL_FURQON.xlsx');
 };
 
+/**
+ * Backward compatibility parser
+ */
 export const parseExcelFile = async (file: File): Promise<Record<string, unknown>[]> => {
+  const { rawRows } = await parseExcelSheetData(file);
+  return rawRows;
+};
+
+/**
+ * Extract sheet names from an Excel file
+ */
+export const getExcelSheets = async (file: File): Promise<string[]> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet);
-        resolve(json);
+        resolve(workbook.SheetNames || []);
       } catch (err) {
         reject(err);
       }
     };
     reader.onerror = (error) => reject(error);
     reader.readAsArrayBuffer(file);
+  });
+};
+
+/**
+ * Parse an Excel sheet into headers and raw row objects
+ */
+export const parseExcelSheetData = async (
+  file: File,
+  sheetName?: string
+): Promise<{ headers: string[]; rawRows: Record<string, any>[] }> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array', cellDates: true, cellText: false });
+        const targetSheetName = sheetName && workbook.SheetNames.includes(sheetName)
+          ? sheetName
+          : workbook.SheetNames[0];
+
+        if (!targetSheetName) {
+          throw new Error('Sheet tidak ditemukan dalam file Excel.');
+        }
+
+        const worksheet = workbook.Sheets[targetSheetName];
+
+        // Convert worksheet to array of arrays to find header row cleanly
+        const rawJsonArray = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1, defval: '' });
+
+        if (!rawJsonArray || rawJsonArray.length === 0) {
+          return resolve({ headers: [], rawRows: [] });
+        }
+
+        // Find header row (first non-empty row)
+        let headerRowIndex = 0;
+        for (let i = 0; i < rawJsonArray.length; i++) {
+          const row = rawJsonArray[i];
+          if (Array.isArray(row) && row.some((cell) => cell !== null && cell !== undefined && String(cell).trim() !== '')) {
+            headerRowIndex = i;
+            break;
+          }
+        }
+
+        const rawHeaders = (rawJsonArray[headerRowIndex] || []).map((h: any, idx: number) => {
+          const trimmed = String(h || '').trim();
+          return trimmed !== '' ? trimmed : `Kolom_${idx + 1}`;
+        });
+
+        // Parse rows as JSON objects keyed by sheet headers
+        const rawRowsJson = XLSX.utils.sheet_to_json<Record<string, any>>(worksheet, {
+          defval: '',
+          range: headerRowIndex,
+          raw: false,
+        });
+
+        // Filter out empty rows
+        const cleanedRows = rawRowsJson.filter((row) =>
+          Object.values(row).some((v) => v !== null && v !== undefined && String(v).trim() !== '')
+        );
+
+        resolve({ headers: rawHeaders, rawRows: cleanedRows });
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = (error) => reject(error);
+    reader.readAsArrayBuffer(file);
+  });
+};
+
+/**
+ * Clean cell values (handles numeric floats like 123.0, exponential notation, numbers as text, whitespace)
+ */
+export const cleanCellValue = (val: any): string => {
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'number') {
+    // Check if integer
+    if (Number.isInteger(val)) {
+      return String(val);
+    }
+    return String(val);
+  }
+  return String(val).trim();
+};
+
+/**
+ * Auto-match Excel header columns to target system fields using alias dictionary
+ */
+export const autoMatchColumns = (
+  excelHeaders: string[],
+  targetFields: TargetFieldDef[]
+): Record<string, string> => {
+  const mapping: Record<string, string> = {};
+
+  targetFields.forEach((field) => {
+    const candidates = [
+      field.key.toLowerCase(),
+      field.label.toLowerCase(),
+      ...(field.aliases || []).map((a) => a.toLowerCase()),
+    ];
+
+    // Find best header match
+    const matchedHeader = excelHeaders.find((header) => {
+      const hLower = header.toLowerCase().trim();
+      const hNormalized = hLower.replace(/[^a-z0-9]/g, '');
+      return candidates.some((cand) => {
+        const cLower = cand.trim();
+        const cNormalized = cLower.replace(/[^a-z0-9]/g, '');
+        return hLower === cLower || hNormalized === cNormalized || hLower.includes(cLower) || cLower.includes(hLower);
+      });
+    });
+
+    mapping[field.key] = matchedHeader || '';
+  });
+
+  return mapping;
+};
+
+/**
+ * Map raw excel rows using the selected column mapping dictionary
+ */
+export const mapExcelRowsToSchema = (
+  rawRows: Record<string, any>[],
+  columnMapping: Record<string, string>,
+  targetFields: TargetFieldDef[]
+): Record<string, any>[] => {
+  return rawRows.map((row) => {
+    const mappedObj: Record<string, any> = {};
+
+    targetFields.forEach((field) => {
+      const selectedExcelColumn = columnMapping[field.key];
+      const rawVal = selectedExcelColumn ? row[selectedExcelColumn] : undefined;
+      const cleaned = cleanCellValue(rawVal);
+
+      if (field.type === 'number') {
+        const numVal = Number(cleaned.replace(/[^0-9.-]/g, ''));
+        mappedObj[field.key] = !isNaN(numVal) && cleaned !== '' ? numVal : field.defaultValue ?? null;
+      } else if (field.type === 'boolean') {
+        const lower = cleaned.toLowerCase();
+        mappedObj[field.key] = ['ya', 'yes', 'true', '1', 'santri', 'aktif'].includes(lower);
+      } else {
+        mappedObj[field.key] = cleaned || (field.defaultValue !== undefined ? field.defaultValue : '');
+      }
+    });
+
+    return mappedObj;
   });
 };

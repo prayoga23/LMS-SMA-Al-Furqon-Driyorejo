@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Toast, ToastMessage } from '@/components/ui/Toast';
 import { FormInput, FormSelect } from '@/components/ui/InputComponents';
 import { api } from '@/lib/api';
-import { downloadStudentExcelTemplate, parseExcelFile } from '@/lib/excel';
+import { downloadStudentExcelTemplate, TargetFieldDef } from '@/lib/excel';
+import { ExcelImportModal } from '@/components/ui/ExcelImportModal';
 import {
   Plus,
   Search,
@@ -85,6 +86,69 @@ const MAJOR_OPTIONS = [
   'IPS',
 ];
 
+const STUDENT_TARGET_FIELDS: TargetFieldDef[] = [
+  {
+    key: 'nis',
+    label: 'NIS (Nomor Induk Siswa)',
+    required: true,
+    description: 'Kode unik nomor induk siswa',
+    aliases: ['nis', 'no induk', 'nomor induk', 'nisn', 'id siswa'],
+  },
+  {
+    key: 'name',
+    label: 'Nama Lengkap Siswa',
+    required: true,
+    description: 'Nama siswa sesuai dokumen resmi',
+    aliases: ['nama', 'nama siswa', 'nama lengkap', 'student name'],
+  },
+  {
+    key: 'class',
+    label: 'Kelas',
+    required: true,
+    description: 'Contoh: X IPA 1, XI IPS 2',
+    aliases: ['kelas', 'rombel', 'rombongan belajar', 'class'],
+    defaultValue: 'X IPA 1',
+  },
+  {
+    key: 'major',
+    label: 'Jurusan / Peminatan',
+    required: false,
+    description: 'Contoh: IPA (MIPA), IPS, Bahasa',
+    aliases: ['jurusan', 'peminatan', 'program', 'major'],
+    defaultValue: 'IPA (MIPA)',
+  },
+  {
+    key: 'entry_year',
+    label: 'Tahun Masuk',
+    required: false,
+    description: 'Contoh: 2024',
+    type: 'number',
+    aliases: ['tahun masuk', 'tahun', 'angkatan', 'entry year'],
+    defaultValue: 2024,
+  },
+  {
+    key: 'parent_name',
+    label: 'Nama Orang Tua / Wali',
+    required: false,
+    description: 'Nama ayah/ibu/wali siswa',
+    aliases: ['nama orang tua', 'nama ortu', 'nama ayah', 'nama ibu', 'nama wali', 'parent name', 'ortu'],
+  },
+  {
+    key: 'parent_email',
+    label: 'Email Orang Tua',
+    required: false,
+    description: 'Email untuk login akun wali',
+    aliases: ['email orang tua', 'email ortu', 'email wali', 'email parent', 'email'],
+  },
+  {
+    key: 'parent_phone',
+    label: 'No HP Orang Tua',
+    required: false,
+    description: 'Nomor WhatsApp/HP orang tua',
+    aliases: ['no hp orang tua', 'no hp ortu', 'no telp ortu', 'telepon ortu', 'hp ortu', 'no hp', 'phone'],
+  },
+];
+
 export default function AdminStudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,10 +188,6 @@ export default function AdminStudentsPage() {
   const [batchMajor, setBatchMajor] = useState('IPA (MIPA)');
   const [batchDate, setBatchDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendanceStatuses, setAttendanceStatuses] = useState<Record<number, 'Hadir' | 'Sakit' | 'Izin' | 'Alpha'>>({});
-
-  // Excel Import State
-  const [importedData, setImportedData] = useState<any[]>([]);
-  const [importFile, setImportFile] = useState<File | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -214,56 +274,21 @@ export default function AdminStudentsPage() {
     }
   };
 
-  // --- HANDLERS IMPORT EXCEL ---
+  // --- HANDLER IMPORT EXCEL ---
   const handleOpenImportModal = () => {
-    setImportedData([]);
-    setImportFile(null);
-    setError('');
     setIsImportModalOpen(true);
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImportFile(file);
-    try {
-      const rawData = await parseExcelFile(file);
-      const mapped = rawData.map((row: any) => ({
-        nis: String(row['NIS'] || row['nis'] || ''),
-        name: String(row['Nama Siswa'] || row['Nama'] || row['name'] || ''),
-        class: String(row['Kelas'] || row['class'] || 'X IPA 1'),
-        major: String(row['Jurusan'] || row['major'] || 'IPA (MIPA)'),
-        entry_year: Number(row['Tahun Masuk'] || row['entry_year']) || 2024,
-        parent_name: String(row['Nama Orang Tua'] || row['Nama Ortu'] || row['parent_name'] || ''),
-        parent_email: String(row['Email Orang Tua'] || row['Email Ortu'] || row['parent_email'] || ''),
-        parent_phone: String(row['No HP Orang Tua'] || row['No HP'] || row['parent_phone'] || ''),
-      }));
-      setImportedData(mapped);
-    } catch (err) {
-      console.error(err);
-      setError('Gagal membaca file Excel. Pastikan format kolom sesuai template.');
-    }
-  };
-
-  const handleSaveImport = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (importedData.length === 0) {
-      setError('Tidak ada data Excel untuk diimport.');
-      return;
-    }
-    setSubmitting(true);
-    setError('');
-    try {
-      const res = await api.post('/students/import', { students: importedData });
-      setIsImportModalOpen(false);
-      showToast('success', res.data.message || 'Import data siswa berhasil!');
-      fetchStudents();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Gagal mengimport data siswa.');
-      showToast('error', 'Gagal import Excel');
-    } finally {
-      setSubmitting(false);
-    }
+  const handleImportStudentsSubmit = async (mappedData: Record<string, any>[]) => {
+    const res = await api.post('/students/import', { students: mappedData });
+    fetchStudents();
+    showToast('success', res.data.message || 'Import data siswa berhasil!');
+    return {
+      successCount: res.data.successCount || 0,
+      updateCount: res.data.updateCount || 0,
+      errors: res.data.errors || [],
+      message: res.data.message,
+    };
   };
 
   // --- HANDLERS SINGLE STUDENT CRUD ---
@@ -728,115 +753,15 @@ export default function AdminStudentsPage() {
         </Modal>
 
         {/* MODAL 2: IMPORT EXCEL DATA SISWA */}
-        <Modal
+        <ExcelImportModal
           isOpen={isImportModalOpen}
           onClose={() => setIsImportModalOpen(false)}
-          title="Import Data Siswa dari File Excel"
-          subtitle="Unggah file .xlsx, .xls, atau .csv untuk menambahkan data siswa secara otomatis"
-        >
-          <form onSubmit={handleSaveImport} className="space-y-5">
-            {error && (
-              <div className="px-3 py-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-[12px] font-medium">
-                {error}
-              </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row items-center justify-between p-3.5 bg-emerald-50/60 rounded-xl border border-emerald-100 gap-3">
-              <div>
-                <p className="text-xs font-bold text-slate-800">Unduh Format Template Excel</p>
-                <p className="text-[11px] text-slate-500">Gunakan template resmi agar kolom NIS, Nama, Kelas, & Orang Tua terstruktur.</p>
-              </div>
-              <button
-                type="button"
-                onClick={downloadStudentExcelTemplate}
-                className="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-200 rounded-lg shadow-2xs transition-colors shrink-0"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Unduh Template (.xlsx)
-              </button>
-            </div>
-
-            {/* File Upload Box */}
-            <div className="border-2 border-dashed border-emerald-200 hover:border-emerald-400 bg-emerald-50/20 p-6 rounded-2xl text-center cursor-pointer transition-colors">
-              <input
-                type="file"
-                accept=".xlsx, .xls, .csv"
-                onChange={handleFileChange}
-                className="hidden"
-                id="excel-file-input"
-              />
-              <label htmlFor="excel-file-input" className="cursor-pointer block">
-                <Upload className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-                <p className="text-xs font-bold text-slate-800">
-                  {importFile ? importFile.name : 'Klik untuk memilih file Excel (.xlsx / .csv)'}
-                </p>
-                <p className="text-[10px] text-slate-400 mt-1">Mendukung format Microsoft Excel & CSV</p>
-              </label>
-            </div>
-
-            {/* Preview Data */}
-            {importedData.length > 0 && (
-              <div>
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
-                  Preview Import ({importedData.length} Baris Data)
-                </h4>
-                <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-xl overflow-x-auto custom-scrollbar">
-                  <table className="w-full text-left text-[11px] text-slate-700">
-                    <thead className="bg-slate-100 text-[10px] uppercase font-bold text-slate-600 sticky top-0">
-                      <tr>
-                        <th className="py-2 px-3">NIS</th>
-                        <th className="py-2 px-3">Nama Siswa</th>
-                        <th className="py-2 px-3">Kelas</th>
-                        <th className="py-2 px-3">Jurusan</th>
-                        <th className="py-2 px-3">Orang Tua</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {importedData.slice(0, 10).map((row, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50">
-                          <td className="py-2 px-3 font-mono font-bold text-emerald-800">{row.nis}</td>
-                          <td className="py-2 px-3 font-semibold">{row.name}</td>
-                          <td className="py-2 px-3">{row.class}</td>
-                          <td className="py-2 px-3">{row.major}</td>
-                          <td className="py-2 px-3">{row.parent_name || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {importedData.length > 10 && (
-                    <p className="text-[10px] text-slate-400 text-center py-2 bg-slate-50 border-t border-slate-100">
-                      + {importedData.length - 10} baris lainnya...
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setIsImportModalOpen(false)}
-                className="px-4 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={submitting || importedData.length === 0}
-                className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white shadow-sm transition-all disabled:opacity-50 flex items-center gap-2"
-              >
-                {submitting ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Meng-import...
-                  </>
-                ) : (
-                  `Simpan ${importedData.length} Data Siswa`
-                )}
-              </button>
-            </div>
-          </form>
-        </Modal>
+          title="Import Data Siswa dari Excel"
+          subtitle="Unggah file Excel dan sesuaikan kolom untuk menambahkan data siswa secara otomatis"
+          targetFields={STUDENT_TARGET_FIELDS}
+          downloadTemplateFn={downloadStudentExcelTemplate}
+          onImportSubmit={handleImportStudentsSubmit}
+        />
 
         {/* MODAL CREATE SINGLE STUDENT */}
         <Modal

@@ -9,6 +9,19 @@ function calculatePredicate(score: number): string {
   return 'D';
 }
 
+async function getTeacherSubject(auth: any): Promise<string | null> {
+  if (auth.subject) return auth.subject;
+  const teacher = await prisma.teacher.findFirst({
+    where: {
+      OR: [
+        { email: auth.email },
+        { id: auth.teacherId || 0 },
+      ],
+    },
+  });
+  return teacher?.subject || null;
+}
+
 export async function GET(req: NextRequest) {
   const auth = getAuthUser(req);
   if (!auth) {
@@ -23,6 +36,13 @@ export async function GET(req: NextRequest) {
   if (studentId) where.studentId = Number(studentId);
   if (semester) where.semester = semester;
 
+  if (auth.role === 'guru') {
+    const teacherSubject = await getTeacherSubject(auth);
+    if (teacherSubject) {
+      where.subject = teacherSubject;
+    }
+  }
+
   const grades = await prisma.grade.findMany({
     where,
     include: { student: true },
@@ -34,7 +54,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const auth = getAuthUser(req);
-  if (!auth || auth.role !== 'admin') {
+  if (!auth || !['admin', 'guru', 'staff'].includes(auth.role)) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
@@ -42,13 +62,32 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { student_id, subject, semester, score, predicate } = body;
 
+    let finalSubject = subject;
+
+    if (auth.role === 'guru') {
+      const teacherSubject = await getTeacherSubject(auth);
+      if (!teacherSubject) {
+        return NextResponse.json(
+          { message: 'Mata pelajaran guru tidak ditemukan dalam sistem.' },
+          { status: 403 }
+        );
+      }
+      if (subject && subject.trim() !== '' && subject.trim().toLowerCase() !== teacherSubject.toLowerCase()) {
+        return NextResponse.json(
+          { message: `Anda hanya dapat menginput nilai untuk mata pelajaran ${teacherSubject}.` },
+          { status: 403 }
+        );
+      }
+      finalSubject = teacherSubject;
+    }
+
     const numericScore = Number(score);
     const finalPredicate = predicate || calculatePredicate(numericScore);
 
     const grade = await prisma.grade.create({
       data: {
         studentId: Number(student_id),
-        subject,
+        subject: finalSubject,
         semester,
         score: numericScore,
         predicate: finalPredicate,

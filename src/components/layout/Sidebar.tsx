@@ -30,7 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
-  const isAdmin = user?.role === 'admin';
+  const isStaffOrAdmin = ['admin', 'guru', 'staff'].includes(user?.role || '');
 
   const formatRoleName = (role?: string) => {
     switch (role) {
@@ -68,7 +68,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { label: 'Info Sekolah', href: '/parent/academics', icon: GraduationCap },
   ];
 
-  const navItems = isAdmin ? adminNav : parentNav;
+  const guruBlockedHrefs = [
+    '/admin/students',
+    '/admin/teachers',
+    '/admin/users',
+    '/admin/payments',
+    '/admin/allowances',
+  ];
+
+  const navItems = isStaffOrAdmin
+    ? user?.role === 'guru'
+      ? adminNav.filter((item) => !guruBlockedHrefs.includes(item.href))
+      : adminNav
+    : parentNav;
 
   return (
     <>
@@ -108,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* Navigation Items */}
         <div className="flex-1 px-4 py-6 overflow-y-auto custom-scrollbar space-y-1.5">
           <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-emerald-800/70 mb-2.5">
-            MENU UTAMA ({isAdmin ? 'ADMIN SEKOLAH' : 'ORANG TUA'})
+            MENU UTAMA ({isStaffOrAdmin ? (user?.role === 'guru' ? 'GURU' : user?.role === 'staff' ? 'STAFF / TU' : 'ADMIN SEKOLAH') : 'ORANG TUA'})
           </p>
           {navItems.map((item) => {
             const isActive = pathname === item.href;

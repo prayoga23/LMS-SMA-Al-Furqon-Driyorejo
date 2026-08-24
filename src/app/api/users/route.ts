@@ -5,7 +5,7 @@ import { getAuthUser } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
   const auth = getAuthUser(req);
-  if (!auth || auth.role !== 'admin') {
+  if (!auth || !['admin', 'staff'].includes(auth.role)) {
     return NextResponse.json({ message: 'Unauthorized. Akses ditolak.' }, { status: 401 });
   }
 
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const auth = getAuthUser(req);
-  if (!auth || auth.role !== 'admin') {
+  if (!auth || !['admin', 'staff'].includes(auth.role)) {
     return NextResponse.json({ message: 'Unauthorized. Akses ditolak.' }, { status: 401 });
   }
 

@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Toast, ToastMessage } from '@/components/ui/Toast';
 import { FormInput, FormSelect } from '@/components/ui/InputComponents';
 import { api } from '@/lib/api';
-import { downloadTeacherExcelTemplate, parseExcelFile } from '@/lib/excel';
+import { downloadTeacherExcelTemplate, TargetFieldDef } from '@/lib/excel';
+import { ExcelImportModal } from '@/components/ui/ExcelImportModal';
 import {
   Building2,
   Plus,
@@ -54,6 +55,52 @@ interface TeacherAttendanceRecord {
   teacher?: Teacher;
 }
 
+const TEACHER_TARGET_FIELDS: TargetFieldDef[] = [
+  {
+    key: 'nip',
+    label: 'NIP (Nomor Induk Pegawai)',
+    required: true,
+    description: 'NIP atau NUPTK resmi guru',
+    aliases: ['nip', 'nuptk', 'no induk guru', 'id guru'],
+  },
+  {
+    key: 'name',
+    label: 'Nama Lengkap Guru',
+    required: true,
+    description: 'Nama lengkap beserta gelar',
+    aliases: ['nama', 'nama guru', 'nama lengkap', 'teacher name'],
+  },
+  {
+    key: 'subject',
+    label: 'Mata Pelajaran',
+    required: true,
+    description: 'Mata pelajaran utama yang diampu',
+    aliases: ['mata pelajaran', 'mapel', 'subject', 'ampuan'],
+  },
+  {
+    key: 'phone',
+    label: 'No HP / WhatsApp',
+    required: false,
+    description: 'Nomor telepon aktif',
+    aliases: ['no hp', 'hp', 'telepon', 'phone', 'whatsapp', 'no telp'],
+  },
+  {
+    key: 'email',
+    label: 'Email',
+    required: false,
+    description: 'Email aktif guru',
+    aliases: ['email', 'surel', 'e-mail'],
+  },
+  {
+    key: 'status',
+    label: 'Status Kepegawaian',
+    required: false,
+    description: 'Aktif atau Non-Aktif',
+    aliases: ['status', 'status kepegawaian', 'keaktifan'],
+    defaultValue: 'Aktif',
+  },
+];
+
 export default function AdminTeachersPage() {
   const [activeTab, setActiveTab] = useState<'teachers' | 'attendance'>('teachers');
 
@@ -81,10 +128,6 @@ export default function AdminTeachersPage() {
     email: '',
     status: 'Aktif',
   });
-
-  // Excel Import State
-  const [importedTeachers, setImportedTeachers] = useState<any[]>([]);
-  const [importFile, setImportFile] = useState<File | null>(null);
 
   // Teacher Attendance State
   const [attendances, setAttendances] = useState<TeacherAttendanceRecord[]>([]);
@@ -234,52 +277,19 @@ export default function AdminTeachersPage() {
 
   // --- IMPORT EXCEL TEACHERS ---
   const handleOpenImportModal = () => {
-    setImportedTeachers([]);
-    setImportFile(null);
-    setError('');
     setIsImportModalOpen(true);
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImportFile(file);
-    try {
-      const rawData = await parseExcelFile(file);
-      const mapped = rawData.map((row: any) => ({
-        nip: String(row['NIP'] || row['nip'] || ''),
-        name: String(row['Nama Guru'] || row['Nama'] || row['name'] || ''),
-        subject: String(row['Mata Pelajaran'] || row['Mapel'] || row['subject'] || ''),
-        phone: String(row['No HP'] || row['HP'] || row['phone'] || ''),
-        email: String(row['Email'] || row['email'] || ''),
-        status: String(row['Status'] || row['status'] || 'Aktif'),
-      }));
-      setImportedTeachers(mapped);
-    } catch (err) {
-      console.error(err);
-      setError('Gagal membaca file Excel. Pastikan format file sesuai.');
-    }
-  };
-
-  const handleSaveImportTeachers = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (importedTeachers.length === 0) {
-      setError('Tidak ada data Excel untuk diimport.');
-      return;
-    }
-    setSubmitting(true);
-    setError('');
-    try {
-      const res = await api.post('/teachers/import', { teachers: importedTeachers });
-      setIsImportModalOpen(false);
-      showToast('success', res.data.message || 'Import data guru berhasil!');
-      fetchTeachers();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Gagal mengimport data guru.');
-      showToast('error', 'Gagal import Excel');
-    } finally {
-      setSubmitting(false);
-    }
+  const handleImportTeachersSubmit = async (mappedData: Record<string, any>[]) => {
+    const res = await api.post('/teachers/import', { teachers: mappedData });
+    fetchTeachers();
+    showToast('success', res.data.message || 'Import data guru berhasil!');
+    return {
+      successCount: res.data.successCount || 0,
+      updateCount: res.data.updateCount || 0,
+      errors: res.data.errors || [],
+      message: res.data.message,
+    };
   };
 
   // --- TEACHER ATTENDANCE BATCH HANDLERS ---
@@ -883,115 +893,15 @@ export default function AdminTeachersPage() {
         </Modal>
 
         {/* MODAL 3: IMPORT EXCEL DATA GURU */}
-        <Modal
+        <ExcelImportModal
           isOpen={isImportModalOpen}
           onClose={() => setIsImportModalOpen(false)}
-          title="Import Data Guru dari File Excel"
-          subtitle="Unggah file .xlsx, .xls, atau .csv untuk menambahkan data guru sekaligus"
-        >
-          <form onSubmit={handleSaveImportTeachers} className="space-y-5">
-            {error && (
-              <div className="px-3 py-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-[12px] font-medium">
-                {error}
-              </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row items-center justify-between p-3.5 bg-emerald-50/60 rounded-xl border border-emerald-100 gap-3">
-              <div>
-                <p className="text-xs font-bold text-slate-800">Unduh Format Template Excel Guru</p>
-                <p className="text-[11px] text-slate-500">Gunakan template resmi agar kolom NIP, Nama, Mapel, Email, HP sesuai format.</p>
-              </div>
-              <button
-                type="button"
-                onClick={downloadTeacherExcelTemplate}
-                className="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-200 rounded-lg shadow-2xs transition-colors shrink-0"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Unduh Template (.xlsx)
-              </button>
-            </div>
-
-            {/* File Upload Area */}
-            <div className="border-2 border-dashed border-emerald-200 hover:border-emerald-400 bg-emerald-50/20 p-6 rounded-2xl text-center cursor-pointer transition-colors">
-              <input
-                type="file"
-                accept=".xlsx, .xls, .csv"
-                onChange={handleFileChange}
-                className="hidden"
-                id="excel-teacher-file-input"
-              />
-              <label htmlFor="excel-teacher-file-input" className="cursor-pointer block">
-                <Upload className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-                <p className="text-xs font-bold text-slate-800">
-                  {importFile ? importFile.name : 'Klik untuk memilih file Excel (.xlsx / .csv)'}
-                </p>
-                <p className="text-[10px] text-slate-400 mt-1">Mendukung format Microsoft Excel & CSV</p>
-              </label>
-            </div>
-
-            {/* Preview Data */}
-            {importedTeachers.length > 0 && (
-              <div>
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
-                  Preview Import ({importedTeachers.length} Baris Data)
-                </h4>
-                <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-xl overflow-x-auto custom-scrollbar">
-                  <table className="w-full text-left text-[11px] text-slate-700">
-                    <thead className="bg-slate-100 text-[10px] uppercase font-bold text-slate-600 sticky top-0">
-                      <tr>
-                        <th className="py-2 px-3">NIP</th>
-                        <th className="py-2 px-3">Nama Guru</th>
-                        <th className="py-2 px-3">Mata Pelajaran</th>
-                        <th className="py-2 px-3">No. HP</th>
-                        <th className="py-2 px-3">Email</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {importedTeachers.slice(0, 10).map((row, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50">
-                          <td className="py-2 px-3 font-mono font-bold text-emerald-800">{row.nip}</td>
-                          <td className="py-2 px-3 font-semibold">{row.name}</td>
-                          <td className="py-2 px-3">{row.subject}</td>
-                          <td className="py-2 px-3">{row.phone || '-'}</td>
-                          <td className="py-2 px-3">{row.email || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {importedTeachers.length > 10 && (
-                    <p className="text-[10px] text-slate-400 text-center py-2 bg-slate-50 border-t border-slate-100">
-                      + {importedTeachers.length - 10} baris lainnya...
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setIsImportModalOpen(false)}
-                className="px-4 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={submitting || importedTeachers.length === 0}
-                className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white shadow-sm transition-all disabled:opacity-50 flex items-center gap-2"
-              >
-                {submitting ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Meng-import...
-                  </>
-                ) : (
-                  `Simpan ${importedTeachers.length} Data Guru`
-                )}
-              </button>
-            </div>
-          </form>
-        </Modal>
+          title="Import Data Guru dari Excel"
+          subtitle="Unggah file Excel dan sesuaikan kolom untuk menambahkan data guru secara otomatis"
+          targetFields={TEACHER_TARGET_FIELDS}
+          downloadTemplateFn={downloadTeacherExcelTemplate}
+          onImportSubmit={handleImportTeachersSubmit}
+        />
 
         {/* MODAL 4: CATAT PRESENSI GURU BATCH */}
         <Modal

@@ -123,7 +123,7 @@ const getFreshPrismaClient = (): any => {
 const getClient = (): any => {
   let instance = globalForPrisma.prisma;
 
-  if (!instance || !instance.teacher || !instance.teacherAttendance) {
+  if (!instance || !instance.teacher || !instance.teacherAttendance || process.env.NODE_ENV === 'development') {
     instance = getFreshPrismaClient();
     globalForPrisma.prisma = instance;
   }
@@ -135,13 +135,6 @@ export const prisma = new Proxy({} as any, {
   get(_target, prop) {
     let client = getClient();
     let value = client[prop];
-
-    if (value === undefined && (prop === 'teacher' || prop === 'teacherAttendance')) {
-      globalForPrisma.prisma = undefined;
-      client = getFreshPrismaClient();
-      globalForPrisma.prisma = client;
-      value = client[prop];
-    }
 
     if (typeof value === 'function') {
       return value.bind(client);

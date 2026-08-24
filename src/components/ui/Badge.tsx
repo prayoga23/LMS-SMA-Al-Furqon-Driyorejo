@@ -5,9 +5,10 @@ import React from 'react';
 interface BadgeProps {
   variant?: 'success' | 'warning' | 'danger' | 'info' | 'purple' | 'indigo' | 'emerald' | 'slate';
   children: React.ReactNode;
+  className?: string;
 }
 
-export const Badge: React.FC<BadgeProps> = ({ variant = 'emerald', children }) => {
+export const Badge: React.FC<BadgeProps> = ({ variant = 'emerald', children, className = '' }) => {
   const styles = {
     emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     success: 'bg-emerald-100 text-emerald-800 border-emerald-200',
@@ -20,7 +21,7 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'emerald', children }) =
   };
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${styles[variant]}`}>
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${styles[variant]} ${className}`}>
       {children}
     </span>
   );

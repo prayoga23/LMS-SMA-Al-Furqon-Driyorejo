@@ -7,7 +7,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = getAuthUser(req);
-  if (!auth || auth.role !== 'admin') {
+  if (!auth || !['admin', 'guru', 'staff'].includes(auth.role)) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
@@ -50,7 +50,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = getAuthUser(req);
-  if (!auth || auth.role !== 'admin') {
+  if (!auth || !['admin', 'guru', 'staff'].includes(auth.role)) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 

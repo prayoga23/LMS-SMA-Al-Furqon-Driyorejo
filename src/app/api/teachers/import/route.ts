@@ -4,7 +4,7 @@ import { getAuthUser } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   const auth = getAuthUser(req);
-  if (!auth || auth.role !== 'admin') {
+  if (!auth || !['admin', 'guru', 'staff'].includes(auth.role)) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
@@ -24,34 +24,46 @@ export async function POST(req: NextRequest) {
     const errors: string[] = [];
 
     for (let i = 0; i < teachers.length; i++) {
-      const item = teachers[i];
-      const nip = String(item.nip || '').trim();
-      const name = String(item.name || '').trim();
-      const subject = String(item.subject || '').trim();
-      const phone = item.phone ? String(item.phone).trim() : null;
-      const email = item.email ? String(item.email).trim() : null;
-      const status = item.status && ['Aktif', 'Non-Aktif'].includes(item.status) ? item.status : 'Aktif';
+      try {
+        const item = teachers[i];
+        const nip = String(item.nip || item.NIP || '').trim();
+        const name = String(item.name || item.nama || item['Nama Guru'] || '').trim();
+        const subject = String(item.subject || item.mapel || item['Mata Pelajaran'] || '').trim();
+        const phone = item.phone || item.no_hp ? String(item.phone || item.no_hp).trim() : null;
+        const email = item.email ? String(item.email).trim() : null;
+        
+        let status = 'Aktif';
+        if (item.status) {
+          const sLower = String(item.status).toLowerCase().trim();
+          if (sLower.includes('non') || sLower.includes('pasif') || sLower.includes('inaktif')) {
+            status = 'Non-Aktif';
+          }
+        }
 
-      if (!nip || !name || !subject) {
-        errors.push(`Baris ${i + 1}: NIP, Nama, dan Mata Pelajaran wajib diisi.`);
-        continue;
-      }
+        if (!nip || !name || !subject) {
+          errors.push(`Baris ${i + 1}: NIP (${nip || 'kosong'}), Nama Guru, dan Mata Pelajaran wajib diisi.`);
+          continue;
+        }
 
-      const existing = await prisma.teacher.findUnique({
-        where: { nip },
-      });
-
-      if (existing) {
-        await prisma.teacher.update({
-          where: { id: existing.id },
-          data: { name, subject, phone, email, status },
+        const existing = await prisma.teacher.findUnique({
+          where: { nip },
         });
-        updateCount++;
-      } else {
-        await prisma.teacher.create({
-          data: { nip, name, subject, phone, email, status },
-        });
-        successCount++;
+
+        if (existing) {
+          await prisma.teacher.update({
+            where: { id: existing.id },
+            data: { name, subject, phone, email, status },
+          });
+          updateCount++;
+        } else {
+          await prisma.teacher.create({
+            data: { nip, name, subject, phone, email, status },
+          });
+          successCount++;
+        }
+      } catch (rowErr: any) {
+        console.error(`Error processing teacher row ${i + 1}:`, rowErr);
+        errors.push(`Baris ${i + 1}: ${rowErr.message || 'Gagal memproses data guru ini.'}`);
       }
     }
 

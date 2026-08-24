@@ -124,22 +124,24 @@ export default function ParentDashboardPage() {
             </h3>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-3">
-            <StatCard
-              title="Pembayaran SPP"
-              value={data?.latest_payment_status || 'N/A'}
-              subtext="Semester Berjalan"
-              icon={CreditCard}
-              gradient={
-                data?.latest_payment_status === 'Lunas'
-                  ? 'from-emerald-50 to-teal-50/60'
-                  : 'from-rose-50 to-amber-50/60'
-              }
-              iconBg={
-                data?.latest_payment_status === 'Lunas'
-                  ? 'bg-emerald-700 text-white'
-                  : 'bg-rose-600 text-white'
-              }
-            />
+            <Link href="/parent/payments" className="block active:scale-98 transition-transform">
+              <StatCard
+                title="Pembayaran SPP"
+                value={data?.latest_payment_status || 'N/A'}
+                subtext={data?.latest_payment_status === 'Lunas' ? 'Semester Berjalan' : 'Klik untuk Bayar Online'}
+                icon={CreditCard}
+                gradient={
+                  data?.latest_payment_status === 'Lunas'
+                    ? 'from-emerald-50 to-teal-50/60'
+                    : 'from-rose-50 to-amber-50/60'
+                }
+                iconBg={
+                  data?.latest_payment_status === 'Lunas'
+                    ? 'bg-emerald-700 text-white'
+                    : 'bg-rose-600 text-white animate-pulse'
+                }
+              />
+            </Link>
             <StatCard
               title="Presensi Siswa"
               value={`${data?.attendance_percentage || 0}%`}

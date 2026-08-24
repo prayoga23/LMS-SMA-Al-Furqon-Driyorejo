@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Sidebar } from './Sidebar';
 import { Navbar } from './Navbar';
 import { BottomNav } from './BottomNav';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -19,15 +19,36 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   React.useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
-    } else if (!loading && user && allowedRole && user.role !== allowedRole) {
-      if (user.role === 'admin') router.push('/admin/dashboard');
-      else router.push('/parent/dashboard');
+    } else if (!loading && user) {
+      if (user.role === 'guru') {
+        const guruBlockedRoutes = [
+          '/admin/students',
+          '/admin/teachers',
+          '/admin/users',
+          '/admin/payments',
+          '/admin/allowances',
+        ];
+        if (guruBlockedRoutes.some((route) => pathname.startsWith(route))) {
+          router.push('/admin/dashboard');
+          return;
+        }
+      }
+
+      if (allowedRole) {
+        const isStaffOrAdmin = ['admin', 'guru', 'staff'].includes(user.role);
+        if (allowedRole === 'admin' && !isStaffOrAdmin) {
+          router.push('/parent/dashboard');
+        } else if (allowedRole === 'parent' && isStaffOrAdmin) {
+          router.push('/admin/dashboard');
+        }
+      }
     }
-  }, [user, loading, allowedRole, router]);
+  }, [user, loading, allowedRole, router, pathname]);
 
   if (loading) {
     return (

@@ -22,7 +22,7 @@ export const BottomNav: React.FC = () => {
 
   if (!user) return null;
 
-  const isAdmin = user.role === 'admin';
+  const isStaffOrAdmin = ['admin', 'guru', 'staff'].includes(user.role);
 
   const parentNav = [
     { label: 'Beranda', href: '/parent/dashboard', icon: Home },
@@ -40,7 +40,18 @@ export const BottomNav: React.FC = () => {
     { label: 'Nilai', href: '/admin/grades', icon: FileSpreadsheet },
   ];
 
-  const navItems = isAdmin ? adminNav : parentNav;
+  const guruNav = [
+    { label: 'Beranda', href: '/admin/dashboard', icon: LayoutDashboard },
+    { label: 'Presensi', href: '/admin/attendance', icon: CalendarCheck },
+    { label: 'Nilai', href: '/admin/grades', icon: FileSpreadsheet },
+    { label: 'Info', href: '/admin/academics', icon: GraduationCap },
+  ];
+
+  const navItems = isStaffOrAdmin
+    ? user?.role === 'guru'
+      ? guruNav
+      : adminNav
+    : parentNav;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-emerald-100 px-2 py-1.5 flex items-center justify-around md:hidden shadow-lg shadow-emerald-900/10">

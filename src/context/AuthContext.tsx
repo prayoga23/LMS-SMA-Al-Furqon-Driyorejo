@@ -9,6 +9,8 @@ export interface User {
   email: string;
   role: 'admin' | 'guru' | 'staff' | 'parent' | string;
   parent_id?: number | null;
+  subject?: string | null;
+  teacher_id?: number | null;
 }
 
 interface RegisterParentData {

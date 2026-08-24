@@ -12,7 +12,7 @@ export default function Home() {
     if (!loading) {
       if (!user) {
         router.push('/login');
-      } else if (user.role === 'admin') {
+      } else if (['admin', 'guru', 'staff'].includes(user.role)) {
         router.push('/admin/dashboard');
       } else {
         router.push('/parent/dashboard');
