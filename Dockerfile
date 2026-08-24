@@ -40,17 +40,16 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# TULIS LANGSUNG ENV DI SINI AGAR NEXT.JS/PRISMA SELALU MEMBACA NYA
+ENV DATABASE_URL="file:./prisma/dev.db"
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
-
-# Mengambil hasil build standalone
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Buat folder khusus untuk SQLite DB jika disimpan dalam folder /app/prisma
-# dan berikan izin akses ke user nextjs
 RUN mkdir -p /app/prisma && chown -R nextjs:nodejs /app/prisma
 
 USER nextjs
