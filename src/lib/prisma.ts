@@ -11,16 +11,16 @@ const globalForPrisma = globalThis as unknown as {
 const getDatabaseUrl = (): string => {
   const envUrl = process.env.DATABASE_URL;
 
-  // Remote connection strings (PostgreSQL, MySQL, Turso, etc.)
-  if (envUrl && !envUrl.startsWith('file:')) {
+  // 1. Jika DATABASE_URL sudah di-set dari Docker / Environment Variable (dan valid), GUNAKAN LANGSUNG!
+  if (envUrl && envUrl.trim() !== '') {
     return envUrl;
   }
 
+  // 2. Logic khusus Provider Serverless (Vercel, Netlify, AWS Lambda) - Hapus process.env.NODE_ENV === 'production'
   const isServerless =
     Boolean(process.env.NETLIFY) ||
     Boolean(process.env.VERCEL) ||
-    Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
-    process.env.NODE_ENV === 'production';
+    Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
 
   if (isServerless) {
     const tmpDbPath = path.join('/tmp', 'dev.db');
@@ -70,10 +70,7 @@ const getDatabaseUrl = (): string => {
     }
   }
 
-  if (envUrl) {
-    return envUrl;
-  }
-
+  // 3. Fallback default jika di lokal dev
   const defaultPath = path.join(process.cwd(), 'prisma', 'dev.db');
   if (fs.existsSync(/*turbopackIgnore: true*/ defaultPath)) {
     return `file:${defaultPath}`;
@@ -114,7 +111,7 @@ const getFreshPrismaClient = (): any => {
       return client;
     }
   } catch (err) {
-    // Fallback if dynamic require fails
+    // Fallback jika dynamic require gagal
   }
 
   return new StandardPrismaClient(prismaOptions);
@@ -142,4 +139,3 @@ export const prisma = new Proxy({} as any, {
     return value;
   },
 });
-
