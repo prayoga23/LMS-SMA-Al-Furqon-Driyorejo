@@ -9,7 +9,8 @@ export const prisma =
   new PrismaClient({
     datasources: {
       db: {
-        url: process.env.DATABASE_URL || 'file:./prisma/dev.db',
+        // PAKSA GUNAKAN ABSOLUTE / RELATIVE PATH KE FILE SQLITE
+        url: 'file:/app/prisma/dev.db',
       },
     },
     log: ['error', 'warn'],
