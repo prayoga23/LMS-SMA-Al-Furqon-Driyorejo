@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  nextjs-lms-alfurqon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nextjs-lms-alfurqon
+    restart: unless-stopped
+    ports:
+      - "3031:3031"
+    environment:
+      - NODE_ENV=production
+      # Sesuaikan path SQLite sesuai lokasi pada schema.prisma (contoh: file:./prisma/dev.db)
+      - DATABASE_URL="file:./prisma/dev.db"
+    volumes:
+      # Mount folder prisma/file db ke host agar data SQLite tetap tersimpan (persistent)
+      - sqlite_data:/app/prisma
+    networks:
+      - proxy-network
+
+volumes:
+  sqlite_data:
+    driver: local
+
+networks:
+  proxy-network:
+    external: true
