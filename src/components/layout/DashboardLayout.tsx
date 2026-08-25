@@ -33,7 +33,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           '/admin/payments',
           '/admin/allowances',
         ];
-        if (guruBlockedRoutes.some((route) => pathname.startsWith(route))) {
+        if (
+          !pathname.startsWith('/admin/teacher-attendance') &&
+          guruBlockedRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`))
+        ) {
           router.push('/admin/dashboard');
           return;
         }

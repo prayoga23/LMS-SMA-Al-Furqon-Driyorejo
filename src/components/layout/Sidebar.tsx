@@ -19,6 +19,7 @@ import {
   X,
   Building2,
   BookMarked,
+  UserCheck,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -51,6 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Data Siswa', href: '/admin/students', icon: Users },
     { label: 'Data Guru', href: '/admin/teachers', icon: Building2 },
+    { label: 'Presensi Guru', href: '/admin/teacher-attendance', icon: UserCheck },
     { label: 'Manajemen User', href: '/admin/users', icon: UserCog },
     { label: 'Pembayaran SPP', href: '/admin/payments', icon: CreditCard },
     { label: 'Presensi Siswa', href: '/admin/attendance', icon: CalendarCheck },
