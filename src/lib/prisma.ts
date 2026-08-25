@@ -8,7 +8,11 @@ const getDatabaseUrl = (): string => {
     if (path.isAbsolute(filePath)) {
       return envUrl;
     }
-    return `file:${path.resolve(process.cwd(), filePath)}`;
+    const cleanPath = filePath.replace(/^\.\//, '');
+    if (cleanPath.startsWith('prisma/')) {
+      return `file:${path.resolve(process.cwd(), cleanPath)}`;
+    }
+    return `file:${path.resolve(process.cwd(), 'prisma', cleanPath)}`;
   }
   if (envUrl && envUrl.trim() !== '') {
     return envUrl;
