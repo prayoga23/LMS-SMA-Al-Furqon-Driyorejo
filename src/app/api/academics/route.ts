@@ -30,10 +30,10 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { title, category, description, date } = body;
+    const { title, category, description, date, imageUrl } = body;
 
     const academic = await prisma.academicInformation.create({
-      data: { title, category, description, date },
+      data: { title, category, description, date, imageUrl: imageUrl || null },
     });
 
     return NextResponse.json({

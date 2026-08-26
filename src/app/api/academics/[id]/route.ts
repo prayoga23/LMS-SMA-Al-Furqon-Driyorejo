@@ -13,11 +13,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   try {
     const body = await req.json();
-    const { title, category, description, date } = body;
+    const { title, category, description, date, imageUrl } = body;
 
     const academic = await prisma.academicInformation.update({
       where: { id: academicId },
-      data: { title, category, description, date },
+      data: { title, category, description, date, imageUrl: imageUrl !== undefined ? imageUrl : undefined },
     });
 
     return NextResponse.json({

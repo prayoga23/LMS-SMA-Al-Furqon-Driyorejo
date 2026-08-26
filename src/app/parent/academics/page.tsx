@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Badge } from '@/components/ui/Badge';
 import { api } from '@/lib/api';
-import { GraduationCap, Calendar, Trophy, Bell, BookOpen, Clock } from 'lucide-react';
+import { GraduationCap, Calendar, Trophy, Bell, BookOpen, Clock, Eye, X } from 'lucide-react';
 
 interface AcademicData {
   jadwal_pelajaran: any[];
@@ -19,6 +19,7 @@ export default function ParentAcademicsPage() {
   const [data, setData] = useState<AcademicData | null>(null);
   const [activeTab, setActiveTab] = useState<'semua' | 'jadwal_pelajaran' | 'jadwal_ujian' | 'prestasi' | 'pengumuman'>('semua');
   const [loading, setLoading] = useState(true);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAcademicInfo();
@@ -120,22 +121,62 @@ export default function ParentAcademicsPage() {
             </div>
           ) : (
             filteredItems.map((item) => (
-              <div key={item.id} className="glass-card rounded-2xl p-6 border border-emerald-100 space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  {getBadge(item.category)}
-                  <span className="text-[11px] font-mono text-slate-500 flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-slate-400" />
-                    {item.date}
-                  </span>
+              <div key={item.id} className="glass-card rounded-2xl overflow-hidden border border-emerald-100 flex flex-col justify-between hover:shadow-md transition-all group">
+                <div>
+                  {item.imageUrl && (
+                    <div className="relative h-48 w-full bg-slate-100 overflow-hidden group/img">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setLightboxImage(item.imageUrl)}
+                        className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5 backdrop-blur-[2px]"
+                      >
+                        <Eye className="w-4 h-4" /> Lihat Gambar
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="p-6 space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      {getBadge(item.category)}
+                      <span className="text-[11px] font-mono text-slate-500 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-slate-400" />
+                        {item.date}
+                      </span>
+                    </div>
+                    <h3 className="text-base font-bold text-slate-900">{item.title}</h3>
+                    <p className="text-xs text-slate-600 whitespace-pre-line leading-relaxed">
+                      {item.description}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-base font-bold text-slate-900">{item.title}</h3>
-                <p className="text-xs text-slate-600 whitespace-pre-line leading-relaxed">
-                  {item.description}
-                </p>
               </div>
             ))
           )}
         </div>
+
+        {/* Lightbox Preview Modal */}
+        {lightboxImage && (
+          <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setLightboxImage(null)}>
+            <div className="relative max-w-4xl max-h-[90vh] bg-transparent overflow-hidden rounded-2xl" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setLightboxImage(null)}
+                className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-slate-900/70 text-white flex items-center justify-center hover:bg-slate-900 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <img
+                src={lightboxImage}
+                alt="Gambar Informasi Akademik"
+                className="w-full h-full object-contain max-h-[85vh] rounded-2xl shadow-2xl"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

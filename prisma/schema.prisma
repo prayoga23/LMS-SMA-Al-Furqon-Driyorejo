@@ -124,6 +124,7 @@ model AcademicInformation {
   category    String
   description String
   date        String
+  imageUrl    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
