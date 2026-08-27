@@ -17,6 +17,6 @@ docker compose exec -T nextjs-lms-alfurqon npx prisma db push --accept-data-loss
 
 echo "🌱 Seeding initial database data..."
 sleep 3
-docker compose exec -T nextjs-lms-alfurqon npx tsx prisma/seed.ts || true
+docker compose exec -T nextjs-lms-alfurqon wget -qO- http://localhost:3031/api/seed || true
 
 echo "✅ Deployment completed successfully!"
