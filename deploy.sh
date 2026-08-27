@@ -20,7 +20,7 @@ echo "🗄️ Syncing SQLite database schema..."
 docker compose exec -T nextjs-lms-alfurqon npx prisma db push --accept-data-loss || npx prisma@6 db push --accept-data-loss
 
 echo "🌱 Seeding database..."
-docker compose exec -T nextjs-lms-alfurqon npx prisma db seed || npx prisma@6 db seed || true
+docker compose exec -T nextjs-lms-alfurqon npx tsx prisma/seed.ts || docker compose exec -T nextjs-lms-alfurqon npx prisma db seed || true
 
 echo "🔒 Re-applying database permissions..."
 chmod -R 777 ./prisma
