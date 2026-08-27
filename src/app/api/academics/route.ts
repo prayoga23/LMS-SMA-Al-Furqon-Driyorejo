@@ -14,12 +14,31 @@ export async function GET(req: NextRequest) {
   const where: any = {};
   if (category) where.category = category;
 
-  const items = await prisma.academicInformation.findMany({
-    where,
-    orderBy: { date: 'desc' },
-  });
+  try {
+    const items = await prisma.academicInformation.findMany({
+      where,
+      include: {
+        createdBy: {
+          select: { id: true, name: true, role: true },
+        },
+      },
+      orderBy: { date: 'desc' },
+    });
 
-  return NextResponse.json(items);
+    return NextResponse.json(items);
+  } catch (error: any) {
+    console.error('Error GET /api/academics:', error);
+    try {
+      const fallbackItems = await prisma.academicInformation.findMany({
+        where,
+        orderBy: { date: 'desc' },
+      });
+      return NextResponse.json(fallbackItems);
+    } catch (fallbackError: any) {
+      console.error('Fallback error GET /api/academics:', fallbackError);
+      return NextResponse.json({ message: fallbackError.message || 'Gagal memuat informasi akademik' }, { status: 500 });
+    }
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -32,8 +51,31 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { title, category, description, date, imageUrl } = body;
 
+    let validCreatedById: number | null = null;
+    if (auth.id) {
+      const existingUser = await prisma.user.findUnique({
+        where: { id: auth.id },
+        select: { id: true },
+      });
+      if (existingUser) {
+        validCreatedById = existingUser.id;
+      }
+    }
+
     const academic = await prisma.academicInformation.create({
-      data: { title, category, description, date, imageUrl: imageUrl || null },
+      data: {
+        title,
+        category,
+        description,
+        date,
+        imageUrl: imageUrl || null,
+        createdById: validCreatedById,
+      },
+      include: {
+        createdBy: {
+          select: { id: true, name: true, role: true },
+        },
+      },
     });
 
     return NextResponse.json({
@@ -41,6 +83,9 @@ export async function POST(req: NextRequest) {
       academic,
     }, { status: 201 });
   } catch (error: any) {
+    console.error('Error POST /api/academics:', error);
     return NextResponse.json({ message: error.message || 'Gagal menambahkan informasi akademik' }, { status: 500 });
   }
 }
+
+

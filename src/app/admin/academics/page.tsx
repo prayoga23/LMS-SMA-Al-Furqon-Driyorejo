@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
@@ -24,6 +25,8 @@ import {
   Image as ImageIcon,
   Eye,
   CheckCircle2,
+  User as UserIcon,
+  Lock,
 } from 'lucide-react';
 
 interface AcademicInfo {
@@ -33,9 +36,16 @@ interface AcademicInfo {
   description: string;
   date: string;
   imageUrl?: string | null;
+  createdById?: number | null;
+  createdBy?: {
+    id: number;
+    name: string;
+    role: string;
+  } | null;
 }
 
 export default function AdminAcademicsPage() {
+  const { user } = useAuth();
   const [items, setItems] = useState<AcademicInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -330,56 +340,84 @@ export default function AdminAcademicsPage() {
               </button>
             </div>
           ) : (
-            filteredItems.map((item) => (
-              <div key={item.id} className="bg-white rounded-2xl border border-indigo-100 shadow-xs flex flex-col justify-between overflow-hidden hover:shadow-md hover:border-indigo-300 transition-all group">
-                <div>
-                  {/* Image Display */}
-                  {item.imageUrl ? (
-                    <div className="relative h-44 w-full bg-slate-100 overflow-hidden group/img">
-                      <img
-                        src={item.imageUrl}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setLightboxImage(item.imageUrl || null)}
-                        className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5 backdrop-blur-[2px]"
-                      >
-                        <Eye className="w-4 h-4" /> Lihat Gambar
-                      </button>
-                    </div>
-                  ) : null}
+            filteredItems.map((item) => {
+              const canManage =
+                user?.role === 'admin' ||
+                (user?.id && item.createdById === user.id) ||
+                !item.createdById;
 
-                  <div className="p-6">
-                    <div className="flex items-center justify-between gap-2 mb-3">
-                      {getCategoryBadge(item.category)}
-                      <span className="text-[11px] font-mono text-slate-500 font-medium flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-slate-400" />
-                        {item.date}
-                      </span>
+              return (
+                <div key={item.id} className="bg-white rounded-2xl border border-indigo-100 shadow-xs flex flex-col justify-between overflow-hidden hover:shadow-md hover:border-indigo-300 transition-all group">
+                  <div>
+                    {/* Image Display */}
+                    {item.imageUrl ? (
+                      <div className="relative h-44 w-full bg-slate-100 overflow-hidden group/img">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setLightboxImage(item.imageUrl || null)}
+                          className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5 backdrop-blur-[2px]"
+                        >
+                          <Eye className="w-4 h-4" /> Lihat Gambar
+                        </button>
+                      </div>
+                    ) : null}
+
+                    <div className="p-6">
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        {getCategoryBadge(item.category)}
+                        <span className="text-[11px] font-mono text-slate-500 font-medium flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-slate-400" />
+                          {item.date}
+                        </span>
+                      </div>
+                      <h3 className="text-base font-bold text-slate-900 mb-2 line-clamp-2 leading-snug">{item.title}</h3>
+                      <p className="text-xs text-slate-600 whitespace-pre-line line-clamp-4 leading-relaxed">{item.description}</p>
+                      
+                      {/* Publisher info */}
+                      {item.createdBy && (
+                        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                          <span className="text-slate-400 flex items-center gap-1">
+                            <UserIcon className="w-3 h-3" /> Pembuat:
+                          </span>
+                          <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md capitalize">
+                            {item.createdBy.name} ({item.createdBy.role})
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    <h3 className="text-base font-bold text-slate-900 mb-2 line-clamp-2 leading-snug">{item.title}</h3>
-                    <p className="text-xs text-slate-600 whitespace-pre-line line-clamp-4 leading-relaxed">{item.description}</p>
+                  </div>
+
+                  <div className="flex justify-between items-center px-6 py-3.5 bg-slate-50/80 border-t border-slate-100">
+                    {canManage ? (
+                      <div className="flex justify-end items-center gap-2 w-full">
+                        <button
+                          onClick={() => handleOpenEditModal(item)}
+                          className="px-3 py-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors text-xs flex items-center gap-1 font-semibold"
+                        >
+                          <Edit className="w-3.5 h-3.5" /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id, item.title)}
+                          className="px-3 py-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-colors text-xs flex items-center gap-1 font-semibold"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Hapus
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="w-full flex items-center justify-end text-[11px] text-slate-400 font-medium italic gap-1">
+                        <Lock className="w-3 h-3 text-slate-400" />
+                        Hanya Pembuat & Admin yang dapat mengedit/menghapus
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                <div className="flex justify-end items-center gap-2 px-6 py-3.5 bg-slate-50/80 border-t border-slate-100">
-                  <button
-                    onClick={() => handleOpenEditModal(item)}
-                    className="px-3 py-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors text-xs flex items-center gap-1 font-semibold"
-                  >
-                    <Edit className="w-3.5 h-3.5" /> Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id, item.title)}
-                    className="px-3 py-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-colors text-xs flex items-center gap-1 font-semibold"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" /> Hapus
-                  </button>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
