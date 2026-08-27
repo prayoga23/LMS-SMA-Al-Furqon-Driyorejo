@@ -129,3 +129,30 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  const auth = getAuthUser(req);
+  if (!auth || !['admin', 'staff'].includes(auth.role)) {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ message: 'ID presensi wajib diisi.' }, { status: 400 });
+    }
+
+    await prisma.teacherAttendance.delete({
+      where: { id: Number(id) },
+    });
+
+    return NextResponse.json({ message: 'Presensi guru berhasil dihapus' });
+  } catch (error: any) {
+    return NextResponse.json(
+      { message: error.message || 'Gagal menghapus presensi guru' },
+      { status: 500 }
+    );
+  }
+}

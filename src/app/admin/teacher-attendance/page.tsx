@@ -26,7 +26,12 @@ import {
   Award,
   Check,
   Edit,
+  Trash2,
+  Users,
+  Eye,
 } from 'lucide-react';
+
+// ─── SHARED INTERFACES ───────────────────────────
 
 interface Teacher {
   id: number;
@@ -45,6 +50,7 @@ interface TeacherAttendanceRecord {
   status: 'Hadir' | 'Sakit' | 'Izin' | 'Alpha';
   notes?: string;
   createdAt: string;
+  teacher?: Teacher;
 }
 
 interface Stats {
@@ -56,7 +62,356 @@ interface Stats {
   percentage: number;
 }
 
-export default function TeacherSelfAttendancePage() {
+// ═══════════════════════════════════════════════════
+// ADMIN VIEW: Rekap Presensi Semua Guru
+// ═══════════════════════════════════════════════════
+
+function AdminTeacherAttendanceView() {
+  const [attendances, setAttendances] = useState<TeacherAttendanceRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+
+  // Filters
+  const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+
+  // Clock
+  const [currentTime, setCurrentTime] = useState('');
+
+  useEffect(() => {
+    fetchAttendances();
+    const timer = setInterval(() => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        })
+      );
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    fetchAttendances();
+  }, [dateFilter]);
+
+  const showToast = (type: 'success' | 'error' | 'info', message: string) => {
+    setToast({ id: Date.now().toString(), type, message });
+  };
+
+  const fetchAttendances = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/teachers/attendance', {
+        params: { date: dateFilter },
+      });
+      setAttendances(res.data);
+    } catch (err: any) {
+      console.error('Error fetching teacher attendances:', err);
+      showToast('error', 'Gagal memuat data presensi guru.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: number, teacherName: string) => {
+    if (!confirm(`Hapus record presensi guru "${teacherName}"?`)) return;
+    try {
+      await api.delete(`/teachers/attendance?id=${id}`);
+      showToast('info', `Presensi guru "${teacherName}" berhasil dihapus.`);
+      fetchAttendances();
+    } catch (err: any) {
+      showToast('error', err.response?.data?.message || 'Gagal menghapus presensi guru.');
+    }
+  };
+
+  const formatDateIndo = (dateStr: string) => {
+    if (!dateStr) return '-';
+    const [year, month, day] = dateStr.split('-');
+    const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return dateObj.toLocaleDateString('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'Hadir': return 'success';
+      case 'Sakit': return 'info';
+      case 'Izin': return 'warning';
+      case 'Alpha': return 'danger';
+      default: return 'slate';
+    }
+  };
+
+  const setDatePreset = (daysOffset: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - daysOffset);
+    setDateFilter(d.toISOString().split('T')[0]);
+  };
+
+  // Filter
+  const filteredAttendances = attendances.filter((item) => {
+    const matchesSearch =
+      !searchTerm ||
+      (item.teacher?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.teacher?.nip || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.teacher?.subject || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter ? item.status === statusFilter : true;
+    return matchesSearch && matchesStatus;
+  });
+
+  // Summary stats
+  const summary = {
+    total: filteredAttendances.length,
+    hadir: filteredAttendances.filter((a) => a.status === 'Hadir').length,
+    sakit: filteredAttendances.filter((a) => a.status === 'Sakit').length,
+    izin: filteredAttendances.filter((a) => a.status === 'Izin').length,
+    alpha: filteredAttendances.filter((a) => a.status === 'Alpha').length,
+  };
+
+  return (
+    <DashboardLayout allowedRole="admin">
+      <Toast toast={toast} onClose={() => setToast(null)} />
+
+      <div className="space-y-6 max-w-7xl mx-auto animate-fade-in">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 p-6 rounded-3xl text-white shadow-xl shadow-emerald-900/10 border border-emerald-600/30">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2.5">
+              <span className="p-2 rounded-xl bg-white/10 backdrop-blur-md text-emerald-200 border border-white/10">
+                <Eye className="w-6 h-6" />
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                Rekap Presensi Guru
+              </h1>
+            </div>
+            <p className="text-emerald-100/90 text-xs sm:text-sm font-medium">
+              Lihat rekapan kehadiran seluruh guru berdasarkan tanggal
+            </p>
+          </div>
+
+          {/* Clock & Date Badge */}
+          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 shrink-0 self-start sm:self-auto">
+            <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-200">
+              <Clock className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-200">
+                {formatDateIndo(new Date().toISOString().split('T')[0])}
+              </p>
+              <p className="text-lg font-black tracking-tight font-mono text-white">
+                {currentTime || '--:--:--'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter Toolbar */}
+        <div className="bg-white rounded-2xl p-5 border border-emerald-100 shadow-xs space-y-4">
+          <div className="flex flex-col md:flex-row md:items-end gap-4">
+            <div className="flex-1">
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600 mb-1 flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5" /> Tanggal Presensi
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className="px-3 py-2 rounded-xl bg-white text-slate-900 font-bold text-xs border border-emerald-300 shadow-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 w-48"
+                />
+                <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setDatePreset(0)}
+                    className="py-1 px-2.5 text-[10px] font-bold rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white transition-colors"
+                  >
+                    Hari Ini
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDatePreset(1)}
+                    className="py-1 px-2.5 text-[10px] font-bold rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 transition-colors"
+                  >
+                    Kemarin
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full md:w-52">
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600 mb-1 flex items-center gap-1">
+                <Filter className="w-3.5 h-3.5" /> Status
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+              >
+                <option value="">Semua Status</option>
+                <option value="Hadir">Hadir</option>
+                <option value="Sakit">Sakit</option>
+                <option value="Izin">Izin</option>
+                <option value="Alpha">Alpha</option>
+              </select>
+            </div>
+
+            <div className="w-full md:w-64">
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600 mb-1 flex items-center gap-1">
+                <Search className="w-3.5 h-3.5" /> Cari Guru
+              </label>
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Cari nama, NIP, atau mapel..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={fetchAttendances}
+              title="Refresh Data"
+              className="p-2.5 rounded-xl border border-slate-200 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 transition-colors shrink-0 self-end"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="bg-emerald-50 rounded-xl p-3.5 border border-emerald-200 text-center">
+            <span className="text-[10px] font-bold text-emerald-800 uppercase block">Hadir</span>
+            <span className="text-xl font-black text-emerald-900">{summary.hadir}</span>
+          </div>
+          <div className="bg-sky-50 rounded-xl p-3.5 border border-sky-200 text-center">
+            <span className="text-[10px] font-bold text-sky-800 uppercase block">Sakit</span>
+            <span className="text-xl font-black text-sky-900">{summary.sakit}</span>
+          </div>
+          <div className="bg-amber-50 rounded-xl p-3.5 border border-amber-200 text-center">
+            <span className="text-[10px] font-bold text-amber-800 uppercase block">Izin</span>
+            <span className="text-xl font-black text-amber-900">{summary.izin}</span>
+          </div>
+          <div className="bg-rose-50 rounded-xl p-3.5 border border-rose-200 text-center">
+            <span className="text-[10px] font-bold text-rose-800 uppercase block">Alpha</span>
+            <span className="text-xl font-black text-rose-900">{summary.alpha}</span>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="bg-white rounded-3xl border border-emerald-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="font-extrabold text-base text-slate-900">
+                Daftar Presensi Guru — {formatDateIndo(dateFilter)}
+              </h3>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Total <span className="font-bold text-slate-900">{filteredAttendances.length}</span> record presensi
+              </p>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="py-16 flex flex-col items-center justify-center gap-2 text-slate-400">
+              <RefreshCw className="w-6 h-6 animate-spin text-emerald-600" />
+              <p className="text-xs font-medium">Memuat data presensi guru...</p>
+            </div>
+          ) : filteredAttendances.length === 0 ? (
+            <div className="py-16 text-center text-slate-400 space-y-2">
+              <CalendarCheck className="w-10 h-10 mx-auto text-slate-300" />
+              <p className="text-sm font-semibold text-slate-600">
+                Belum ada data presensi guru ditemukan
+              </p>
+              <p className="text-xs text-slate-400">
+                Tidak ada catatan presensi guru pada tanggal yang dipilih.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200/80 bg-slate-50/70 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
+                    <th className="py-3.5 px-4 w-14 text-center">No</th>
+                    <th className="py-3.5 px-4">Nama Guru</th>
+                    <th className="py-3.5 px-4">NIP</th>
+                    <th className="py-3.5 px-4">Mata Pelajaran</th>
+                    <th className="py-3.5 px-4 text-center">Status</th>
+                    <th className="py-3.5 px-4">Catatan</th>
+                    <th className="py-3.5 px-4">Waktu</th>
+                    <th className="py-3.5 px-4 text-center w-20">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredAttendances.map((item, idx) => (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-emerald-50/30 transition-colors duration-150 text-slate-700"
+                    >
+                      <td className="py-3.5 px-4 text-center font-semibold text-slate-400 font-mono">
+                        {idx + 1}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <p className="font-bold text-slate-900">{item.teacher?.name || '-'}</p>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-slate-600">
+                        {item.teacher?.nip || '-'}
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-600 font-medium">
+                        {item.teacher?.subject || '-'}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <Badge variant={getStatusBadgeVariant(item.status)}>
+                          {item.status}
+                        </Badge>
+                      </td>
+                      <td className="py-3.5 px-4 max-w-xs truncate text-slate-600">
+                        {item.notes || '-'}
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-500 font-mono">
+                        {item.createdAt
+                          ? new Date(item.createdAt).toLocaleTimeString('id-ID', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : '-'}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <button
+                          onClick={() => handleDelete(item.id, item.teacher?.name || 'Guru')}
+                          className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
+                          title="Hapus presensi"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// GURU VIEW: Self-Attendance (Original)
+// ═══════════════════════════════════════════════════
+
+function GuruSelfAttendanceView() {
   const { user } = useAuth();
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [todayAttendance, setTodayAttendance] = useState<TeacherAttendanceRecord | null>(null);
@@ -590,4 +945,33 @@ export default function TeacherSelfAttendancePage() {
       </div>
     </DashboardLayout>
   );
+}
+
+// ═══════════════════════════════════════════════════
+// PAGE EXPORT: Route to correct view based on role
+// ═══════════════════════════════════════════════════
+
+export default function TeacherAttendancePage() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-4 border-emerald-600/30 border-t-emerald-600 rounded-full animate-spin" />
+            <p className="text-sm font-medium text-slate-600">Memuat...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Admin & Staff: View all teacher attendance records
+  if (user?.role === 'admin' || user?.role === 'staff') {
+    return <AdminTeacherAttendanceView />;
+  }
+
+  // Guru: Self-attendance
+  return <GuruSelfAttendanceView />;
 }

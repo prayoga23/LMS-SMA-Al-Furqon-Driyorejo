@@ -78,10 +78,13 @@ export default function AdminAcademicsPage() {
     try {
       setLoading(true);
       const res = await api.get('/academics');
-      setItems(res.data);
-    } catch (err) {
-      console.error(err);
-      showToast('error', 'Gagal memuat informasi akademik');
+      // Ensure response is an array
+      const data = Array.isArray(res.data) ? res.data : [];
+      setItems(data);
+    } catch (err: any) {
+      console.error('Error fetching academics:', err);
+      const errMsg = err.response?.data?.message || err.message || 'Gagal memuat informasi akademik';
+      showToast('error', errMsg);
     } finally {
       setLoading(false);
     }
@@ -318,6 +321,13 @@ export default function AdminAcademicsPage() {
             <div className="col-span-full py-16 text-center text-slate-400 bg-white rounded-2xl border border-indigo-100 p-8">
               <Bell className="w-10 h-10 mx-auto mb-2 text-slate-300" />
               <p className="font-semibold text-slate-600">Belum ada informasi akademik yang dipublish</p>
+              <button
+                onClick={fetchAcademics}
+                className="mt-3 px-4 py-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-colors inline-flex items-center gap-1.5 border border-indigo-200"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Coba Muat Ulang
+              </button>
             </div>
           ) : (
             filteredItems.map((item) => (

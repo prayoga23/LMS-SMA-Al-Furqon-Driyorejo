@@ -97,6 +97,7 @@ const ALL_SUBJECTS = [
 export default function AdminAttendancePage() {
   const { user } = useAuth();
   const isGuru = user?.role === 'guru';
+  const isAdmin = user?.role === 'admin';
   const teacherSubject = user?.subject || 'Kimia';
 
   const [attendances, setAttendances] = useState<AttendanceRecord[]>([]);
@@ -314,34 +315,38 @@ export default function AdminAttendancePage() {
           <div>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
               <CalendarCheck className="w-6 h-6 text-emerald-700" />
-              Presensi Siswa per Mata Pelajaran & Jam Pelajaran
+              {isAdmin ? 'Rekap Presensi Siswa' : 'Presensi Siswa per Mata Pelajaran & Jam Pelajaran'}
             </h2>
             <p className="text-xs text-slate-500 mt-1">
-              Input dan kelola absensi siswa saat jam mengajar mata pelajaran di setiap kelas
+              {isAdmin
+                ? 'Lihat rekapan presensi siswa per mata pelajaran, kelas, dan jam pelajaran'
+                : 'Input dan kelola absensi siswa saat jam mengajar mata pelajaran di setiap kelas'}
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-emerald-200 text-emerald-800 hover:bg-emerald-50 font-bold text-xs shadow-2xs transition-all"
-            >
-              <Plus className="w-4 h-4 text-emerald-700" />
-              Input Absensi Individu
-            </button>
-            <button
-              onClick={handleSaveBatchAttendance}
-              disabled={submitting}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-800 hover:to-teal-800 text-white font-bold text-xs shadow-md shadow-emerald-700/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-            >
-              {submitting ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              Simpan Presensi Kelas
-            </button>
-          </div>
+          {!isAdmin && (
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-emerald-200 text-emerald-800 hover:bg-emerald-50 font-bold text-xs shadow-2xs transition-all"
+              >
+                <Plus className="w-4 h-4 text-emerald-700" />
+                Input Absensi Individu
+              </button>
+              <button
+                onClick={handleSaveBatchAttendance}
+                disabled={submitting}
+                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-800 hover:to-teal-800 text-white font-bold text-xs shadow-md shadow-emerald-700/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              >
+                {submitting ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                Simpan Presensi Kelas
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Toolbar Header Filter Per Mengajar */}
@@ -504,14 +509,16 @@ export default function AdminAttendancePage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleMarkAllHadir}
-              type="button"
-              className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition-all flex items-center gap-1.5"
-            >
-              <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
-              Hadirkan Semua Siswa
-            </button>
+            {!isAdmin && (
+              <button
+                onClick={handleMarkAllHadir}
+                type="button"
+                className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition-all flex items-center gap-1.5"
+              >
+                <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
+                Hadirkan Semua Siswa
+              </button>
+            )}
             <button
               onClick={fetchAttendances}
               className="p-2 text-slate-500 hover:text-emerald-700 rounded-xl bg-slate-50 border border-slate-200 hover:bg-emerald-50 transition-colors"
@@ -588,32 +595,40 @@ export default function AdminAttendancePage() {
                           <span className="text-[10px] text-slate-500 font-mono">NIS: {st.nis}</span>
                         </td>
                         <td className="py-3.5 px-5 text-center">
-                          {/* Tombol Status Kehadiran [ Hadir v ] Sesuai Sketsa Gambar */}
-                          <div className="relative inline-block w-40">
-                            <select
-                              value={currentStatus}
-                              onChange={(e) =>
-                                handleStatusChange(st.id, e.target.value as 'Hadir' | 'Sakit' | 'Izin' | 'Alpha')
-                              }
-                              className={`w-full appearance-none pl-3 pr-8 py-2 rounded-xl border font-black text-xs transition-all shadow-xs cursor-pointer ${activeStyle.bg} ${activeStyle.text} ${activeStyle.border} focus:outline-none focus:ring-2 focus:ring-emerald-400`}
-                            >
-                              <option value="Hadir" className="bg-white text-emerald-800 font-bold">
-                                Hadir
-                              </option>
-                              <option value="Izin" className="bg-white text-sky-800 font-bold">
-                                Izin
-                              </option>
-                              <option value="Sakit" className="bg-white text-amber-800 font-bold">
-                                Sakit
-                              </option>
-                              <option value="Alpha" className="bg-white text-rose-800 font-bold">
-                                Alpha
-                              </option>
-                            </select>
-                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-600">
-                              <ChevronDown className="w-4 h-4" />
+                          {isAdmin ? (
+                            /* Admin: Read-only status badge */
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-black text-xs ${activeStyle.bg} ${activeStyle.text} ${activeStyle.border}`}>
+                              <IconComp className="w-3.5 h-3.5" />
+                              {currentStatus}
+                            </span>
+                          ) : (
+                            /* Guru/Staff: Editable status dropdown */
+                            <div className="relative inline-block w-40">
+                              <select
+                                value={currentStatus}
+                                onChange={(e) =>
+                                  handleStatusChange(st.id, e.target.value as 'Hadir' | 'Sakit' | 'Izin' | 'Alpha')
+                                }
+                                className={`w-full appearance-none pl-3 pr-8 py-2 rounded-xl border font-black text-xs transition-all shadow-xs cursor-pointer ${activeStyle.bg} ${activeStyle.text} ${activeStyle.border} focus:outline-none focus:ring-2 focus:ring-emerald-400`}
+                              >
+                                <option value="Hadir" className="bg-white text-emerald-800 font-bold">
+                                  Hadir
+                                </option>
+                                <option value="Izin" className="bg-white text-sky-800 font-bold">
+                                  Izin
+                                </option>
+                                <option value="Sakit" className="bg-white text-amber-800 font-bold">
+                                  Sakit
+                                </option>
+                                <option value="Alpha" className="bg-white text-rose-800 font-bold">
+                                  Alpha
+                                </option>
+                              </select>
+                              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-600">
+                                <ChevronDown className="w-4 h-4" />
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </td>
                       </tr>
                     );
@@ -695,8 +710,8 @@ export default function AdminAttendancePage() {
           </div>
         </div>
 
-        {/* MODAL ABSENSI INDIVIDU */}
-        <Modal
+        {/* MODAL ABSENSI INDIVIDU — Hidden for Admin */}
+        {!isAdmin && <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           title="Catat Presensi Siswa Individu"
@@ -820,7 +835,7 @@ export default function AdminAttendancePage() {
               </button>
             </div>
           </form>
-        </Modal>
+        </Modal>}
       </div>
     </DashboardLayout>
   );
