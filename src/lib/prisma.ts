@@ -34,9 +34,9 @@ const getDatabaseUrl = (): string => {
   // If relative path (e.g. file:./prisma/dev.db or file:dev.db)
   const cleanPath = filePath.replace(/^\.\//, '');
   if (cleanPath.startsWith('prisma/')) {
-    return `file:${path.resolve(process.cwd(), cleanPath)}`;
+    return `file:${path.resolve(/*turbopackIgnore: true*/ process.cwd(), cleanPath)}`;
   }
-  return `file:${path.resolve(process.cwd(), 'prisma', cleanPath)}`;
+  return `file:${path.resolve(/*turbopackIgnore: true*/ process.cwd(), 'prisma', cleanPath)}`;
 };
 
 const globalForPrisma = globalThis as unknown as {

@@ -10,19 +10,20 @@ echo "🔒 Ensuring SQLite database directory permissions..."
 mkdir -p ./prisma
 chmod -R 777 ./prisma
 
-echo "🗄️ Syncing SQLite database schema..."
-npx prisma@6 db push --accept-data-loss || npx prisma db push --accept-data-loss
-
-echo "🌱 Seeding database..."
-npx tsx prisma/seed.ts || true
-
-echo "🔒 Re-applying database permissions..."
-chmod -R 777 ./prisma
-
 echo "🔨 Building Docker images..."
 docker compose build
 
 echo "🔄 Starting/Restarting running containers..."
 docker compose up -d --force-recreate
+
+echo "🗄️ Syncing SQLite database schema..."
+docker compose exec -T nextjs-lms-alfurqon npx prisma db push --accept-data-loss || true
+
+echo "🌱 Seeding initial database data..."
+sleep 3
+docker compose exec -T nextjs-lms-alfurqon wget -qO- http://localhost:3031/api/seed || true
+
+echo "🔒 Re-applying database permissions..."
+chmod -R 777 ./prisma
 
 echo "✅ Deployment completed successfully!"

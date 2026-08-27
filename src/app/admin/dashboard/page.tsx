@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { StatCard } from '@/components/ui/StatCard';
 import { Badge } from '@/components/ui/Badge';
+import { Toast, ToastMessage } from '@/components/ui/Toast';
 import { api } from '@/lib/api';
 import {
   Users,
@@ -14,6 +15,9 @@ import {
   Clock,
   UserCheck,
   BookMarked,
+  RefreshCw,
+  Sparkles,
+  Database,
 } from 'lucide-react';
 import {
   PieChart,
@@ -63,10 +67,16 @@ interface AdminDashboardData {
 export default function AdminDashboardPage() {
   const [data, setData] = useState<AdminDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  const showToast = (type: 'success' | 'error' | 'info', message: string) => {
+    setToast({ id: Date.now().toString(), type, message });
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -75,8 +85,23 @@ export default function AdminDashboardPage() {
       setData(res.data);
     } catch (err) {
       console.error(err);
+      showToast('error', 'Gagal memuat statistik dashboard');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSeedData = async () => {
+    try {
+      setSeeding(true);
+      await api.post('/seed');
+      showToast('success', 'Database berhasil diisi dengan data demo lengkap!');
+      fetchDashboardData();
+    } catch (err: any) {
+      console.error(err);
+      showToast('error', err.response?.data?.message || 'Gagal mengisi data demo');
+    } finally {
+      setSeeding(false);
     }
   };
 
@@ -95,6 +120,8 @@ export default function AdminDashboardPage() {
   return (
     <DashboardLayout allowedRole="admin">
       <div className="space-y-8 animate-fade-in">
+        <Toast toast={toast} onClose={() => setToast(null)} />
+
         {/* Header Title */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -102,13 +129,49 @@ export default function AdminDashboardPage() {
               <BookMarked className="w-6 h-6 text-emerald-700" />
               Dashboard Admin SMA AL - FURQON DRIYOREJO
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">Ringkasan statistik siswa, SPP, presensi, & akademik</p>
+            <p className="text-xs text-slate-500 mt-0.5">Ringkasan statistik siswa, SPP, presensi, & grafik akademik</p>
           </div>
-          <div className="flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
-            <Clock className="w-4 h-4 text-emerald-700" />
-            Tahun Ajaran: 2026/2027
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSeedData}
+              disabled={seeding}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              title="Isi database dengan data demo otomatis"
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${seeding ? 'animate-spin' : ''}`} />
+              {seeding ? 'Mengisi Data...' : 'Isi Data Demo & Grafik'}
+            </button>
+            <div className="flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+              <Clock className="w-4 h-4 text-emerald-700" />
+              Tahun Ajaran: 2026/2027
+            </div>
           </div>
         </div>
+
+        {/* Banner Kosong jika database 0 siswa */}
+        {!loading && data?.total_students === 0 && (
+          <div className="bg-gradient-to-r from-emerald-500 via-teal-600 to-indigo-600 rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0">
+                <Database className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base">Database Masih Kosong / Data 0</h3>
+                <p className="text-xs text-emerald-100 mt-0.5">
+                  Klik tombol di samping untuk mengisi data demo siswa, pembayaran SPP, presensi, & pengumuman secara otomatis agar grafik aktif penuh.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleSeedData}
+              disabled={seeding}
+              className="px-5 py-2.5 rounded-xl bg-white text-emerald-800 hover:bg-emerald-50 font-black text-xs shadow-sm transition-all hover:scale-105 shrink-0 flex items-center gap-2"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              {seeding ? 'Mengisi Data...' : 'Isi Data Demo Sekarang'}
+            </button>
+          </div>
+        )}
 
         {/* 5 Card KPI Overview */}
         {loading ? (
