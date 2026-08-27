@@ -71,6 +71,18 @@ export default function AdminDashboardPage() {
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
   useEffect(() => {
+    // 0ms Instant Rendering: Tampilkan data cache lokal secara langsung tanpa menunggu
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('admin_dashboard_cache');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          setData(parsed);
+          setLoading(false);
+        } catch (e) {}
+      }
+    }
+    // Lakukan pembaruan data secara seamless di background (SWR pattern)
     fetchDashboardData();
   }, []);
 
@@ -78,14 +90,17 @@ export default function AdminDashboardPage() {
     setToast({ id: Date.now().toString(), type, message });
   };
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (force = false) => {
     try {
-      setLoading(true);
-      const res = await api.get('/admin/dashboard-stats');
+      if (!data) setLoading(true);
+      const res = await api.get('/admin/dashboard-stats' + (force ? '?refresh=true' : ''));
       setData(res.data);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('admin_dashboard_cache', JSON.stringify(res.data));
+      }
     } catch (err) {
       console.error(err);
-      showToast('error', 'Gagal memuat statistik dashboard');
+      if (!data) showToast('error', 'Gagal memuat statistik dashboard');
     } finally {
       setLoading(false);
     }
@@ -132,15 +147,6 @@ export default function AdminDashboardPage() {
             <p className="text-xs text-slate-500 mt-0.5">Ringkasan statistik siswa, SPP, presensi, & grafik akademik</p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleSeedData}
-              disabled={seeding}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-              title="Isi database dengan data demo otomatis"
-            >
-              <Sparkles className={`w-3.5 h-3.5 ${seeding ? 'animate-spin' : ''}`} />
-              {seeding ? 'Mengisi Data...' : 'Isi Data Demo & Grafik'}
-            </button>
             <div className="flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
               <Clock className="w-4 h-4 text-emerald-700" />
               Tahun Ajaran: 2026/2027

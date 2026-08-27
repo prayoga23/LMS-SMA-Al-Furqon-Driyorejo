@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
 
+// In-Memory Server Cache untuk 0ms response time
+let cachedStats: { data: any; timestamp: number } | null = null;
+const CACHE_TTL = 30 * 1000; // Cache 30 detik
+
 export async function GET(req: NextRequest) {
   try {
     const auth = getAuthUser(req);
@@ -9,7 +13,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    // Eksekusi seluruh 16 query database secara paralel (Promise.all) untuk performa super cepat
+    const now = Date.now();
+    const refresh = req.nextUrl.searchParams.get('refresh') === 'true';
+
+    // Kembalikan dari cache server jika masih dalam TTL 30 detik (0ms delay!)
+    if (!refresh && cachedStats && now - cachedStats.timestamp < CACHE_TTL) {
+      return NextResponse.json(cachedStats.data, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+        },
+      });
+    }
+
+    // Eksekusi seluruh 16 query database secara paralel (Promise.all)
     const [
       totalStudents,
       totalParents,
@@ -83,7 +99,7 @@ export async function GET(req: NextRequest) {
 
     const averageGrade = Number((gradeAvg._avg?.score || 0).toFixed(1));
 
-    return NextResponse.json({
+    const result = {
       total_students: totalStudents,
       total_parents: totalParents,
       total_spp_paid: totalSppPaid,
@@ -103,6 +119,15 @@ export async function GET(req: NextRequest) {
         Sakit: sakitCount,
         Izin: izinCount,
         Alpha: alphaCount,
+      },
+    };
+
+    // Simpan ke in-memory cache
+    cachedStats = { data: result, timestamp: now };
+
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
       },
     });
   } catch (error: any) {
