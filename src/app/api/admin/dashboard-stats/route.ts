@@ -9,67 +9,79 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const totalStudents = await prisma.student.count();
-    const totalParents = await prisma.parents.count();
+    // Eksekusi seluruh 16 query database secara paralel (Promise.all) untuk performa super cepat
+    const [
+      totalStudents,
+      totalParents,
+      lunasPayments,
+      yayasanLunas,
+      sekolahLunas,
+      totalAttendanceCount,
+      hadirCount,
+      sakitCount,
+      izinCount,
+      alphaCount,
+      gradeAvg,
+      latestPayments,
+      latestStudents,
+      latestAcademic,
+      lunasCount,
+      belumLunasCount,
+    ] = await Promise.all([
+      prisma.student.count(),
+      prisma.parents.count(),
+      prisma.payment.aggregate({
+        where: { status: 'Lunas' },
+        _sum: { amount: true },
+      }),
+      prisma.payment.aggregate({
+        where: { status: 'Lunas', category: 'SPP' },
+        _sum: { amount: true },
+      }),
+      prisma.payment.aggregate({
+        where: { status: 'Lunas', category: 'Kegiatan' },
+        _sum: { amount: true },
+      }),
+      prisma.attendance.count(),
+      prisma.attendance.count({ where: { status: 'Hadir' } }),
+      prisma.attendance.count({ where: { status: 'Sakit' } }),
+      prisma.attendance.count({ where: { status: 'Izin' } }),
+      prisma.attendance.count({ where: { status: 'Alpha' } }),
+      prisma.grade.aggregate({
+        _avg: { score: true },
+      }),
+      prisma.payment.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        include: { student: true },
+      }),
+      prisma.student.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          parent: {
+            include: { user: true },
+          },
+        },
+      }),
+      prisma.academicInformation.findMany({
+        take: 5,
+        orderBy: { date: 'desc' },
+      }),
+      prisma.payment.count({ where: { status: 'Lunas' } }),
+      prisma.payment.count({ where: { status: 'Belum Lunas' } }),
+    ]);
 
-    const lunasPayments = await prisma.payment.aggregate({
-      where: { status: 'Lunas' },
-      _sum: { amount: true },
-    });
     const totalSppPaid = lunasPayments._sum?.amount || 0;
-
-    const yayasanLunas = await prisma.payment.aggregate({
-      where: { status: 'Lunas', category: 'SPP' },
-      _sum: { amount: true },
-    });
     const totalYayasanPaid = yayasanLunas._sum?.amount || 0;
-
-    const sekolahLunas = await prisma.payment.aggregate({
-      where: { status: 'Lunas', category: 'Kegiatan' },
-      _sum: { amount: true },
-    });
     const totalSekolahPaid = sekolahLunas._sum?.amount || 0;
 
-    const totalAttendanceCount = await prisma.attendance.count();
-    const hadirCount = await prisma.attendance.count({ where: { status: 'Hadir' } });
     const attendancePercentage =
       totalAttendanceCount > 0
         ? Number(((hadirCount / totalAttendanceCount) * 100).toFixed(1))
         : 0;
 
-    const gradeAvg = await prisma.grade.aggregate({
-      _avg: { score: true },
-    });
     const averageGrade = Number((gradeAvg._avg?.score || 0).toFixed(1));
-
-    const latestPayments = await prisma.payment.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      include: { student: true },
-    });
-
-    const latestStudents = await prisma.student.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        parent: {
-          include: { user: true },
-        },
-      },
-    });
-
-    const latestAcademic = await prisma.academicInformation.findMany({
-      take: 5,
-      orderBy: { date: 'desc' },
-    });
-
-    const lunasCount = await prisma.payment.count({ where: { status: 'Lunas' } });
-    const belumLunasCount = await prisma.payment.count({ where: { status: 'Belum Lunas' } });
-
-    const hadirB = await prisma.attendance.count({ where: { status: 'Hadir' } });
-    const sakitB = await prisma.attendance.count({ where: { status: 'Sakit' } });
-    const izinB = await prisma.attendance.count({ where: { status: 'Izin' } });
-    const alphaB = await prisma.attendance.count({ where: { status: 'Alpha' } });
 
     return NextResponse.json({
       total_students: totalStudents,
@@ -87,10 +99,10 @@ export async function GET(req: NextRequest) {
         belum_lunas: belumLunasCount,
       },
       attendance_breakdown: {
-        Hadir: hadirB,
-        Sakit: sakitB,
-        Izin: izinB,
-        Alpha: alphaB,
+        Hadir: hadirCount,
+        Sakit: sakitCount,
+        Izin: izinCount,
+        Alpha: alphaCount,
       },
     });
   } catch (error: any) {
