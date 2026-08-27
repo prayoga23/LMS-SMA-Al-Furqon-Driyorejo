@@ -7,11 +7,10 @@ services:
     restart: unless-stopped
     ports:
       - "3031:3031"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=file:/app/prisma/dev.db
-    volumes:
-      - ./prisma:/app/prisma
     networks:
       - proxy-network
 
