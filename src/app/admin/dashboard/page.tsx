@@ -18,6 +18,7 @@ import {
   RefreshCw,
   Sparkles,
   Database,
+  Loader2,
 } from 'lucide-react';
 import {
   PieChart,
@@ -71,7 +72,7 @@ export default function AdminDashboardPage() {
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
   useEffect(() => {
-    // 0ms Instant Rendering: Tampilkan data cache lokal secara langsung tanpa menunggu
+    // 0ms Instant Rendering: Tampilkan data cache lokal jika tersedia
     if (typeof window !== 'undefined') {
       const cached = localStorage.getItem('admin_dashboard_cache');
       if (cached) {
@@ -82,7 +83,7 @@ export default function AdminDashboardPage() {
         } catch (e) {}
       }
     }
-    // Lakukan pembaruan data secara seamless di background (SWR pattern)
+    // Pembaruan data otomatis di background
     fetchDashboardData();
   }, []);
 
@@ -92,7 +93,7 @@ export default function AdminDashboardPage() {
 
   const fetchDashboardData = async (force = false) => {
     try {
-      if (!data) setLoading(true);
+      if (!data || force) setLoading(true);
       const res = await api.get('/admin/dashboard-stats' + (force ? '?refresh=true' : ''));
       setData(res.data);
       if (typeof window !== 'undefined') {
@@ -111,7 +112,7 @@ export default function AdminDashboardPage() {
       setSeeding(true);
       await api.post('/seed');
       showToast('success', 'Database berhasil diisi dengan data demo lengkap!');
-      fetchDashboardData();
+      fetchDashboardData(true);
     } catch (err: any) {
       console.error(err);
       showToast('error', err.response?.data?.message || 'Gagal mengisi data demo');
@@ -121,15 +122,15 @@ export default function AdminDashboardPage() {
   };
 
   const sppPieData = [
-    { name: 'Lunas', value: data?.spp_summary.lunas || 0, color: '#10b981' },
-    { name: 'Belum Lunas', value: data?.spp_summary.belum_lunas || 0, color: '#f43f5e' },
+    { name: 'Lunas', value: data?.spp_summary?.lunas || 0, color: '#10b981' },
+    { name: 'Belum Lunas', value: data?.spp_summary?.belum_lunas || 0, color: '#f43f5e' },
   ];
 
   const attendanceBarData = [
-    { status: 'Hadir', jumlah: data?.attendance_breakdown.Hadir || 0, fill: '#10b981' },
-    { status: 'Sakit', jumlah: data?.attendance_breakdown.Sakit || 0, fill: '#f59e0b' },
-    { status: 'Izin', jumlah: data?.attendance_breakdown.Izin || 0, fill: '#0284c7' },
-    { status: 'Alpha', jumlah: data?.attendance_breakdown.Alpha || 0, fill: '#e11d48' },
+    { status: 'Hadir', jumlah: data?.attendance_breakdown?.Hadir || 0, fill: '#10b981' },
+    { status: 'Sakit', jumlah: data?.attendance_breakdown?.Sakit || 0, fill: '#f59e0b' },
+    { status: 'Izin', jumlah: data?.attendance_breakdown?.Izin || 0, fill: '#0284c7' },
+    { status: 'Alpha', jumlah: data?.attendance_breakdown?.Alpha || 0, fill: '#e11d48' },
   ];
 
   return (
@@ -146,7 +147,24 @@ export default function AdminDashboardPage() {
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">Ringkasan statistik siswa, SPP, presensi, & grafik akademik</p>
           </div>
+
           <div className="flex items-center gap-2">
+            {/* Animasi Indikator Loading / Refreshing */}
+            {loading && (
+              <div className="flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 animate-pulse">
+                <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
+                <span>Memuat Data & Grafik...</span>
+              </div>
+            )}
+
+            <button
+              onClick={() => fetchDashboardData(true)}
+              className="p-2.5 rounded-xl bg-white border border-slate-200 hover:border-emerald-300 text-slate-600 hover:text-emerald-700 transition-all hover:bg-emerald-50 shadow-xs"
+              title="Segarkan Data Grafik"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-emerald-600' : ''}`} />
+            </button>
+
             <div className="flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
               <Clock className="w-4 h-4 text-emerald-700" />
               Tahun Ajaran: 2026/2027
@@ -180,10 +198,17 @@ export default function AdminDashboardPage() {
         )}
 
         {/* 5 Card KPI Overview */}
-        {loading ? (
+        {loading && !data ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-32 bg-white rounded-2xl animate-pulse border border-emerald-100" />
+              <div key={i} className="h-32 bg-white rounded-2xl animate-pulse border border-emerald-100 flex flex-col justify-between p-5">
+                <div className="flex justify-between items-center">
+                  <div className="h-3 w-20 bg-slate-200 rounded" />
+                  <div className="h-8 w-8 bg-slate-200 rounded-xl" />
+                </div>
+                <div className="h-6 w-16 bg-slate-200 rounded" />
+                <div className="h-3 w-24 bg-slate-100 rounded" />
+              </div>
             ))}
           </div>
         ) : (
@@ -234,7 +259,7 @@ export default function AdminDashboardPage() {
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Chart 1: SPP Status */}
-          <div className="bg-white rounded-2xl p-6 border border-emerald-100 shadow-xs flex flex-col justify-between">
+          <div className="bg-white rounded-2xl p-6 border border-emerald-100 shadow-xs flex flex-col justify-between relative overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-bold text-slate-900">Status Pembayaran SPP</h3>
@@ -243,43 +268,50 @@ export default function AdminDashboardPage() {
               <TrendingUp className="w-5 h-5 text-emerald-600" />
             </div>
 
-            <div className="h-64 flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={sppPieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {sppPieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ background: '#ffffff', borderColor: '#cbd5e1', borderRadius: '12px', color: '#0f172a' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            {loading && !data ? (
+              <div className="h-64 flex flex-col items-center justify-center gap-3 bg-slate-50/50 rounded-xl border border-dashed border-emerald-200 animate-pulse">
+                <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+                <span className="text-xs font-semibold text-slate-500">Memuat Grafik Pembayaran...</span>
+              </div>
+            ) : (
+              <div className="h-64 flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={sppPieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {sppPieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ background: '#ffffff', borderColor: '#cbd5e1', borderRadius: '12px', color: '#0f172a' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
 
             <div className="flex justify-center items-center gap-6 mt-4 pt-4 border-t border-slate-100 text-xs">
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-emerald-600" />
-                <span className="text-slate-700 font-semibold">Lunas ({data?.spp_summary.lunas || 0})</span>
+                <span className="text-slate-700 font-semibold">Lunas ({data?.spp_summary?.lunas || 0})</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-rose-600" />
-                <span className="text-slate-700 font-semibold">Belum Lunas ({data?.spp_summary.belum_lunas || 0})</span>
+                <span className="text-slate-700 font-semibold">Belum Lunas ({data?.spp_summary?.belum_lunas || 0})</span>
               </div>
             </div>
           </div>
 
           {/* Chart 2: Attendance Breakdown */}
-          <div className="bg-white rounded-2xl p-6 border border-emerald-100 shadow-xs flex flex-col justify-between">
+          <div className="bg-white rounded-2xl p-6 border border-emerald-100 shadow-xs flex flex-col justify-between relative overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-bold text-slate-900">Distribusi Kehadiran Siswa</h3>
@@ -288,29 +320,36 @@ export default function AdminDashboardPage() {
               <CalendarCheck className="w-5 h-5 text-teal-600" />
             </div>
 
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={attendanceBarData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="status" stroke="#64748b" tick={{ fontSize: 12 }} />
-                  <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{ background: '#ffffff', borderColor: '#cbd5e1', borderRadius: '12px', color: '#0f172a' }}
-                  />
-                  <Bar dataKey="jumlah" radius={[8, 8, 0, 0]}>
-                    {attendanceBarData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            {loading && !data ? (
+              <div className="h-64 flex flex-col items-center justify-center gap-3 bg-slate-50/50 rounded-xl border border-dashed border-teal-200 animate-pulse">
+                <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
+                <span className="text-xs font-semibold text-slate-500">Memuat Grafik Kehadiran...</span>
+              </div>
+            ) : (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={attendanceBarData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="status" stroke="#64748b" tick={{ fontSize: 12 }} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+                    <Tooltip
+                      contentStyle={{ background: '#ffffff', borderColor: '#cbd5e1', borderRadius: '12px', color: '#0f172a' }}
+                    />
+                    <Bar dataKey="jumlah" radius={[8, 8, 0, 0]}>
+                      {attendanceBarData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
 
             <div className="flex justify-around text-xs font-semibold text-slate-600 pt-4 border-t border-slate-100">
-              <span className="text-emerald-700">Hadir: {data?.attendance_breakdown.Hadir || 0}</span>
-              <span className="text-amber-700">Sakit: {data?.attendance_breakdown.Sakit || 0}</span>
-              <span className="text-sky-700">Izin: {data?.attendance_breakdown.Izin || 0}</span>
-              <span className="text-rose-700">Alpha: {data?.attendance_breakdown.Alpha || 0}</span>
+              <span className="text-emerald-700">Hadir: {data?.attendance_breakdown?.Hadir || 0}</span>
+              <span className="text-amber-700">Sakit: {data?.attendance_breakdown?.Sakit || 0}</span>
+              <span className="text-sky-700">Izin: {data?.attendance_breakdown?.Izin || 0}</span>
+              <span className="text-rose-700">Alpha: {data?.attendance_breakdown?.Alpha || 0}</span>
             </div>
           </div>
         </div>
@@ -334,7 +373,7 @@ export default function AdminDashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {data?.latest_payments.map((p) => (
+                  {data?.latest_payments?.map((p) => (
                     <tr key={p.id} className="hover:bg-emerald-50/30 transition-colors">
                       <td className="py-3 px-3 font-semibold text-slate-900">{p.student?.name || 'Siswa'}</td>
                       <td className="py-3 px-3">{p.semester}</td>
@@ -377,7 +416,7 @@ export default function AdminDashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {data?.latest_students.map((s) => (
+                  {data?.latest_students?.map((s) => (
                     <tr key={s.id} className="hover:bg-emerald-50/30 transition-colors">
                       <td className="py-3 px-3 font-mono font-bold text-emerald-700">{s.nis}</td>
                       <td className="py-3 px-3 font-semibold text-slate-900">{s.name}</td>
