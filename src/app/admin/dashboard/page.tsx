@@ -111,11 +111,11 @@ export default function AdminDashboardPage() {
     try {
       setSeeding(true);
       await api.post('/seed');
-      showToast('success', 'Database berhasil diisi dengan data demo lengkap!');
+      showToast('success', 'Database berhasil di-reset ke akun role user default!');
       fetchDashboardData(true);
     } catch (err: any) {
       console.error(err);
-      showToast('error', err.response?.data?.message || 'Gagal mengisi data demo');
+      showToast('error', err.response?.data?.message || 'Gagal mereset data database');
     } finally {
       setSeeding(false);
     }
@@ -182,7 +182,7 @@ export default function AdminDashboardPage() {
               <div>
                 <h3 className="font-extrabold text-base">Database Masih Kosong / Data 0</h3>
                 <p className="text-xs text-emerald-100 mt-0.5">
-                  Klik tombol di samping untuk mengisi data demo siswa, pembayaran SPP, presensi, & pengumuman secara otomatis agar grafik aktif penuh.
+                  Semua data dummy telah dihapus. Klik tombol untuk memproses reset akun login (Admin, Guru, Staff, Orang Tua).
                 </p>
               </div>
             </div>
@@ -192,7 +192,7 @@ export default function AdminDashboardPage() {
               className="px-5 py-2.5 rounded-xl bg-white text-emerald-800 hover:bg-emerald-50 font-black text-xs shadow-sm transition-all hover:scale-105 shrink-0 flex items-center gap-2"
             >
               <Sparkles className="w-4 h-4 text-emerald-600" />
-              {seeding ? 'Mengisi Data...' : 'Isi Data Demo Sekarang'}
+              {seeding ? 'Memproses...' : 'Reset Akun User'}
             </button>
           </div>
         )}
