@@ -31,18 +31,27 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Ambil ekstensi file
-    const originalName = file.name || 'image.png';
-    const ext = path.extname(originalName) || '.png';
-    const filename = `academic-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext.toLowerCase()}`;
+    let publicUrl = '';
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'academics');
-    await mkdir(uploadDir, { recursive: true });
+    try {
+      const originalName = file.name || 'image.png';
+      const ext = path.extname(originalName) || '.png';
+      const filename = `academic-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext.toLowerCase()}`;
 
-    const filePath = path.join(uploadDir, filename);
-    await writeFile(filePath, buffer);
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'academics');
+      await mkdir(uploadDir, { recursive: true });
 
-    const publicUrl = `/uploads/academics/${filename}`;
+      const filePath = path.join(uploadDir, filename);
+      await writeFile(filePath, buffer);
+
+      publicUrl = `/uploads/academics/${filename}`;
+    } catch (fsError) {
+      console.warn('Filesystem write error, falling back to Data URL:', fsError);
+      // Fallback to Data URL for serverless / read-only environment
+      const base64 = buffer.toString('base64');
+      const mimeType = file.type || 'image/png';
+      publicUrl = `data:${mimeType};base64,${base64}`;
+    }
 
     return NextResponse.json({
       message: 'Gambar berhasil diunggah',
@@ -53,3 +62,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: error.message || 'Gagal mengunggah gambar' }, { status: 500 });
   }
 }
+
