@@ -145,7 +145,7 @@ function AdminDashboardView() {
         try {
           setData(JSON.parse(cached));
           setLoading(false);
-        } catch (e) {}
+        } catch (e) { }
       }
     }
     fetchDashboardData();
@@ -237,30 +237,6 @@ function AdminDashboardView() {
           </div>
         </div>
 
-        {/* Reset Database Banner */}
-        {!loading && data?.total_students === 0 && (
-          <div className="bg-gradient-to-r from-emerald-500 via-teal-600 to-indigo-600 rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0">
-                <Database className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-base">Database Masih Kosong / Data 0</h3>
-                <p className="text-xs text-emerald-100 mt-0.5">
-                  Klik tombol untuk memproses reset akun login default.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleSeedData}
-              disabled={seeding}
-              className="px-5 py-2.5 rounded-xl bg-white text-emerald-800 hover:bg-emerald-50 font-black text-xs shadow-sm transition-all hover:scale-105 shrink-0 flex items-center gap-2"
-            >
-              <Sparkles className="w-4 h-4 text-emerald-600" />
-              {seeding ? 'Memproses...' : 'Reset Akun User'}
-            </button>
-          </div>
-        )}
 
         {/* 5 Card KPI Overview */}
         {loading && !data ? (
@@ -617,7 +593,7 @@ function GuruDashboardView() {
         <div className="bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-emerald-900/10 border border-emerald-600/30 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
           <div className="space-y-2 relative z-10">
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-emerald-200 text-xs font-extrabold uppercase tracking-wider border border-white/15">
+              <span className="px-3 py-1 rounded-full bg-white/15 text-emerald-200 text-xs font-extrabold uppercase tracking-wider border border-white/20">
                 Dashboard Pengajar
               </span>
               <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-400/30">
@@ -643,7 +619,7 @@ function GuruDashboardView() {
           </div>
 
           {/* Clock & Realtime Badge */}
-          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-white/15 shrink-0 self-start md:self-auto relative z-10">
+          <div className="flex items-center gap-3 bg-white/15 px-5 py-3.5 rounded-2xl border border-white/20 shrink-0 self-start md:self-auto relative z-10">
             <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-200">
               <Clock className="w-6 h-6 animate-pulse" />
             </div>
@@ -658,7 +634,7 @@ function GuruDashboardView() {
           </div>
         </div>
 
-        {/* ─── 2. PRESENSI MANDIRI GURU HARI INI WIDGET ─── */}
+        {/* ─── 2. Presensi Guru Hari Ini WIDGET ─── */}
         <div className="bg-white rounded-3xl p-6 border border-emerald-100 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
@@ -667,7 +643,7 @@ function GuruDashboardView() {
               </div>
               <div>
                 <h2 className="font-extrabold text-base text-slate-900">
-                  Presensi Mandiri Guru Hari Ini
+                  Presensi Guru Hari Ini
                 </h2>
                 <p className="text-xs text-slate-500">
                   {formatDateIndo(data?.todayDate)}
@@ -755,17 +731,16 @@ function GuruDashboardView() {
                         key={st}
                         type="button"
                         onClick={() => setSelectedStatus(st)}
-                        className={`p-3 rounded-2xl border text-xs font-extrabold flex items-center justify-center gap-2 transition-all duration-200 ${
-                          isSelected
+                        className={`p-3 rounded-2xl border text-xs font-extrabold flex items-center justify-center gap-2 transition-all duration-200 ${isSelected
                             ? st === 'Hadir'
                               ? 'bg-emerald-700 text-white border-emerald-700 shadow-md shadow-emerald-700/20 scale-[1.02]'
                               : st === 'Sakit'
-                              ? 'bg-sky-600 text-white border-sky-600 shadow-md shadow-sky-600/20 scale-[1.02]'
-                              : st === 'Izin'
-                              ? 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-600/20 scale-[1.02]'
-                              : 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-600/20 scale-[1.02]'
+                                ? 'bg-sky-600 text-white border-sky-600 shadow-md shadow-sky-600/20 scale-[1.02]'
+                                : st === 'Izin'
+                                  ? 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-600/20 scale-[1.02]'
+                                  : 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-600/20 scale-[1.02]'
                             : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-emerald-50 hover:border-emerald-200'
-                        }`}
+                          }`}
                       >
                         {isSelected && <Check className="w-4 h-4" />}
                         {st}

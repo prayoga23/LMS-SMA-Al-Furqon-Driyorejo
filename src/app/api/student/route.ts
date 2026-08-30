@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
           parentId: parent.id,
           nis: '20241001',
           name: 'Sultan Syahrir',
-          class: 'X-IPA 1',
+          class: 'X IPA 1',
           major: 'IPA',
           entryYear: 2024,
           isSantri: true,

@@ -2,6 +2,31 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
 
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = getAuthUser(req);
+  if (!auth) {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const paymentId = Number(id);
+
+  try {
+    const payment = await prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: { student: true },
+    });
+
+    if (!payment) {
+      return NextResponse.json({ message: 'Pembayaran tidak ditemukan' }, { status: 404 });
+    }
+
+    return NextResponse.json(payment);
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message || 'Gagal mengambil data pembayaran' }, { status: 500 });
+  }
+}
+
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = getAuthUser(req);
   if (!auth || !['admin', 'guru', 'staff'].includes(auth.role)) {

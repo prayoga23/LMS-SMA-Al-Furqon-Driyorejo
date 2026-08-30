@@ -98,14 +98,14 @@ export default function AdminAttendancePage() {
   const { user } = useAuth();
   const isGuru = user?.role === 'guru';
   const isAdmin = user?.role === 'admin';
-  const teacherSubject = user?.subject || 'Kimia';
+  const [teacherSubject, setTeacherSubject] = useState(user?.subject || '');
 
   const [attendances, setAttendances] = useState<AttendanceRecord[]>([]);
   const [students, setStudents] = useState<StudentOption[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Filters State per Mengajar
-  const [selectedSubject, setSelectedSubject] = useState(isGuru ? teacherSubject : 'Kimia');
+  const [selectedSubject, setSelectedSubject] = useState('Kimia');
   const [selectedClass, setSelectedClass] = useState('X IPA 1');
   const [selectedSession, setSelectedSession] = useState('Jam Ke-1 (07:00 - 08:30)');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -127,7 +127,7 @@ export default function AdminAttendancePage() {
     student_id: '',
     date: new Date().toISOString().split('T')[0],
     status: 'Hadir' as 'Hadir' | 'Sakit' | 'Izin' | 'Alpha',
-    subject: isGuru ? teacherSubject : 'Kimia',
+    subject: 'Kimia',
     session: 'Jam Ke-1 (07:00 - 08:30)',
   });
 
@@ -135,11 +135,19 @@ export default function AdminAttendancePage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isGuru && teacherSubject) {
-      setSelectedSubject(teacherSubject);
-      setFormData((prev) => ({ ...prev, subject: teacherSubject }));
+    if (isGuru) {
+      api.get('/teachers/my-attendance')
+        .then((res) => {
+          if (res.data?.teacher?.subject) {
+            const subj = res.data.teacher.subject;
+            setTeacherSubject(subj);
+            setSelectedSubject(subj);
+            setFormData((prev) => ({ ...prev, subject: subj }));
+          }
+        })
+        .catch(() => {});
     }
-  }, [user, isGuru, teacherSubject]);
+  }, [isGuru]);
 
   useEffect(() => {
     fetchAttendances();
@@ -192,8 +200,12 @@ export default function AdminAttendancePage() {
     }
   };
 
+  const normalizeClass = (cls?: string) => (cls || '').replace(/[\s-]/g, '').toUpperCase();
+
   // Filter students for selected class & search query
-  const classStudents = students.filter((s) => s.class === selectedClass);
+  const classStudents = students.filter(
+    (s) => normalizeClass(s.class) === normalizeClass(selectedClass)
+  );
   const filteredStudents = classStudents.filter((s) => {
     if (!search) return true;
     const q = search.toLowerCase();

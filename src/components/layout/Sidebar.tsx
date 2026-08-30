@@ -52,6 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Data Siswa', href: '/admin/students', icon: Users },
     { label: 'Data Guru', href: '/admin/teachers', icon: Building2 },
+    { label: 'Mata Pelajaran', href: '/admin/subjects', icon: BookMarked },
     { label: 'Presensi Guru', href: '/admin/teacher-attendance', icon: UserCheck },
     { label: 'Manajemen User', href: '/admin/users', icon: UserCog },
     { label: 'Pembayaran SPP', href: '/admin/payments', icon: CreditCard },
@@ -74,6 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { label: 'Dashboard Guru', href: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Presensi Saya (Guru)', href: '/admin/teacher-attendance', icon: UserCheck },
     { label: 'Presensi Siswa', href: '/admin/attendance', icon: CalendarCheck },
+    { label: 'Mata Pelajaran', href: '/admin/subjects', icon: BookMarked },
     { label: 'Rapor & Nilai', href: '/admin/grades', icon: FileSpreadsheet },
     { label: 'Informasi Sekolah', href: '/admin/academics', icon: GraduationCap },
   ];
@@ -89,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Mobile Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-slate-900/40 md:hidden"
           onClick={onClose}
         />
       )}

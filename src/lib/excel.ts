@@ -10,6 +10,28 @@ export interface TargetFieldDef {
   defaultValue?: any;
 }
 
+export const STUDENT_TARGET_FIELDS: TargetFieldDef[] = [
+  { key: 'nis', label: 'NIS', required: true, description: 'Nomor Induk Siswa', aliases: ['nis', 'no_induk', 'nomor_induk'] },
+  { key: 'name', label: 'Nama Siswa', required: true, description: 'Nama lengkap siswa', aliases: ['nama', 'name', 'nama_siswa', 'nama_lengkap'] },
+  { key: 'class', label: 'Kelas', required: false, description: 'Kelas siswa (contoh: X IPA 1)', aliases: ['kelas', 'class', 'rombel'] },
+  { key: 'major', label: 'Jurusan', required: false, description: 'Jurusan (IPA, IPS, dll)', aliases: ['jurusan', 'major', 'peminatan'] },
+  { key: 'entry_year', label: 'Tahun Masuk', type: 'number', required: false, description: 'Tahun angkatan masuk', aliases: ['tahun_masuk', 'angaktan', 'tahun'] },
+  { key: 'is_santri', label: 'Status Santri', type: 'boolean', required: false, description: 'Apakah siswa santri pondok', aliases: ['santri', 'is_santri', 'status_santri'] },
+  { key: 'residence_type', label: 'Jenis Tempat Tinggal', required: false, description: 'Asrama / Non-Asrama', aliases: ['residence', 'residence_type', 'asrama'] },
+  { key: 'parent_name', label: 'Nama Wali', required: false, description: 'Nama orang tua/wali', aliases: ['nama_ortu', 'wali', 'parent_name'] },
+  { key: 'parent_email', label: 'Email Wali', required: false, description: 'Email akun wali siswa', aliases: ['email_ortu', 'email_wali', 'parent_email'] },
+  { key: 'parent_phone', label: 'No HP Wali', required: false, description: 'Nomor HP WhatsApp wali', aliases: ['hp_ortu', 'no_hp', 'phone', 'parent_phone'] },
+];
+
+export const TEACHER_TARGET_FIELDS: TargetFieldDef[] = [
+  { key: 'nip', label: 'NIP', required: true, description: 'Nomor Induk Pegawai/Guru', aliases: ['nip', 'no_nip', 'id_guru'] },
+  { key: 'name', label: 'Nama Guru', required: true, description: 'Nama lengkap beserta gelar', aliases: ['nama', 'name', 'nama_guru', 'nama_lengkap'] },
+  { key: 'subject', label: 'Mata Pelajaran', required: true, description: 'Bidang studi utama', aliases: ['mapel', 'subject', 'mata_pelajaran', 'bidang'] },
+  { key: 'phone', label: 'No HP / WhatsApp', required: false, description: 'Nomor telepon aktif', aliases: ['phone', 'no_hp', 'telp', 'wa'] },
+  { key: 'email', label: 'Email Login', required: false, description: 'Email akun portal guru', aliases: ['email', 'email_guru', 'mail'] },
+  { key: 'status', label: 'Status Kepegawaian', required: false, description: 'Aktif / Non-Aktif', aliases: ['status', 'status_guru'] },
+];
+
 export const downloadStudentExcelTemplate = () => {
   const data = [
     {

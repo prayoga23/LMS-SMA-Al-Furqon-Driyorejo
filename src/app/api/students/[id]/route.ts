@@ -2,6 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
 
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = getAuthUser(req);
+  if (!auth) {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const studentId = Number(id);
+
+  try {
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      include: {
+        parent: {
+          include: { user: true },
+        },
+      },
+    });
+
+    if (!student) {
+      return NextResponse.json({ message: 'Siswa tidak ditemukan' }, { status: 404 });
+    }
+
+    return NextResponse.json(student);
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message || 'Gagal mengambil data siswa' }, { status: 500 });
+  }
+}
+
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = getAuthUser(req);
   if (!auth || !['admin', 'guru', 'staff'].includes(auth.role)) {

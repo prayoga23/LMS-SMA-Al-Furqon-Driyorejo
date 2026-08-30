@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
@@ -407,29 +408,22 @@ export default function AdminStudentsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              onClick={handleOpenBatchAttendance}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <CalendarCheck className="w-4 h-4" />
-              Catat Presensi Kelas & Jurusan
-            </button>
 
-            <button
-              onClick={handleOpenImportModal}
+            <Link
+              href="/admin/students/import"
               className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-emerald-800 hover:from-teal-800 hover:to-emerald-900 text-white font-bold text-xs shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <FileSpreadsheet className="w-4 h-4" />
               Import Excel
-            </button>
+            </Link>
 
-            <button
-              onClick={handleOpenAddModal}
+            <Link
+              href="/admin/students/create"
               className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-800 hover:from-emerald-800 hover:to-emerald-900 text-white font-bold text-xs shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <Plus className="w-4 h-4" />
               Tambah Siswa Baru
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -588,27 +582,27 @@ export default function AdminStudentsPage() {
                             <span className="text-slate-400 font-normal">-</span>
                           )}
                         </td>
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => handleOpenEditModal(s)}
-                            className="p-2 text-emerald-700 hover:text-emerald-950 hover:bg-emerald-100/70 rounded-xl transition-colors"
-                            title="Edit Data Siswa"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(s.id, s.name)}
-                            className="p-2 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-xl transition-colors"
-                            title="Hapus Siswa"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <Link
+                              href={`/admin/students/${s.id}/edit`}
+                              className="p-2 text-emerald-700 hover:text-emerald-950 hover:bg-emerald-100/70 rounded-xl transition-colors"
+                              title="Edit Data Siswa"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Link>
+                            <button
+                              onClick={() => handleDelete(s.id, s.name)}
+                              className="p-2 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-xl transition-colors"
+                              title="Hapus Siswa"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -708,11 +702,10 @@ export default function AdminStudentsPage() {
                                 onClick={() =>
                                   setAttendanceStatuses((prev) => ({ ...prev, [st.id]: stOpt.key as any }))
                                 }
-                                className={`px-2.5 py-1 rounded-md text-[11px] border transition-all ${
-                                  isSel
+                                className={`px-2.5 py-1 rounded-md text-[11px] border transition-all ${isSel
                                     ? activeStyles[stOpt.color]
                                     : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
-                                }`}
+                                  }`}
                               >
                                 {stOpt.label}
                               </button>
@@ -762,425 +755,6 @@ export default function AdminStudentsPage() {
           downloadTemplateFn={downloadStudentExcelTemplate}
           onImportSubmit={handleImportStudentsSubmit}
         />
-
-        {/* MODAL CREATE SINGLE STUDENT */}
-        <Modal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          title="Tambah Data Siswa Baru"
-          subtitle="Isi data siswa dan informasi wali murid"
-        >
-          <form onSubmit={handleCreate} className="space-y-6">
-            {error && (
-              <div className="px-3 py-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-[12px] font-medium">
-                {error}
-              </div>
-            )}
-
-            <div>
-              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">1. Profil Siswa</h4>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div className="md:col-span-2">
-                  <FormInput
-                    label="NIS Siswa"
-                    required
-                    icon={Hash}
-                    placeholder="20241099"
-                    value={formData.nis}
-                    onChange={(e) => setFormData({ ...formData, nis: e.target.value })}
-                  />
-                </div>
-                <div className="md:col-span-3">
-                  <FormInput
-                    label="Nama Lengkap Siswa"
-                    required
-                    icon={User}
-                    placeholder="Ahmad Zaki Pratama"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <FormSelect
-                label="Kelas"
-                required
-                icon={GraduationCap}
-                value={formData.class}
-                onChange={(e) => setFormData({ ...formData, class: e.target.value })}
-              >
-                {CLASS_OPTIONS.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </FormSelect>
-              <FormSelect
-                label="Jurusan"
-                required
-                icon={Sparkles}
-                value={formData.major}
-                onChange={(e) => setFormData({ ...formData, major: e.target.value })}
-              >
-                {MAJOR_OPTIONS.map((m) => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </FormSelect>
-              <FormSelect
-                label="Tahun Masuk"
-                required
-                icon={Calendar}
-                value={formData.entry_year}
-                onChange={(e) => setFormData({ ...formData, entry_year: e.target.value })}
-              >
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-                <option value="2022">2022</option>
-              </FormSelect>
-            </div>
-
-            <div className="pt-2 border-t border-slate-100">
-              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">
-                2. Status Santri & Tarif Pembayaran Tersendiri
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-amber-50/40 p-3.5 rounded-xl border border-amber-100 mb-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1.5 uppercase">
-                    Status Santri Pondok
-                  </label>
-                  <div className="flex items-center gap-3">
-                    <label className="flex items-center gap-2 text-xs font-medium cursor-pointer text-slate-800">
-                      <input
-                        type="radio"
-                        name="is_santri_add"
-                        checked={formData.is_santri === true}
-                        onChange={() => setFormData({ ...formData, is_santri: true })}
-                        className="text-amber-600 focus:ring-amber-500"
-                      />
-                      Santri Pondok
-                    </label>
-                    <label className="flex items-center gap-2 text-xs font-medium cursor-pointer text-slate-800">
-                      <input
-                        type="radio"
-                        name="is_santri_add"
-                        checked={formData.is_santri === false}
-                        onChange={() => setFormData({ ...formData, is_santri: false })}
-                        className="text-amber-600 focus:ring-amber-500"
-                      />
-                      Non-Santri
-                    </label>
-                  </div>
-                </div>
-
-                <FormSelect
-                  label="Status Tempat Tinggal"
-                  value={formData.residence_type}
-                  onChange={(e) => setFormData({ ...formData, residence_type: e.target.value })}
-                >
-                  <option value="Non-Asrama">Non-Asrama (Pulang-Pergi)</option>
-                  <option value="Asrama">Asrama Pondok</option>
-                </FormSelect>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormInput
-                  label="Nominal SPP Tersendiri (Rp)"
-                  type="number"
-                  value={formData.spp_nominal}
-                  onChange={(e) => setFormData({ ...formData, spp_nominal: e.target.value })}
-                  helperText="Saluran: Yayasan Pondok Pesantren Al-Furqon"
-                />
-                <FormInput
-                  label="Nominal Anggaran Kegiatan (Rp)"
-                  type="number"
-                  value={formData.activity_nominal}
-                  onChange={(e) => setFormData({ ...formData, activity_nominal: e.target.value })}
-                  helperText="Saluran: Sekolah (SMA Al-Furqon)"
-                />
-              </div>
-
-              <div className="mt-3 bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.has_discount}
-                    onChange={(e) => setFormData({ ...formData, has_discount: e.target.checked })}
-                    className="rounded text-amber-600 focus:ring-amber-500"
-                  />
-                  Siswa Meminta / Mendapat Keringanan Biaya (Diskon Khusus)
-                </label>
-
-                {formData.has_discount && (
-                  <FormInput
-                    label="Catatan / Permohonan Keringanan"
-                    placeholder="Misal: Keringanan Santri Yatim / Permohonan Wali"
-                    value={formData.discount_notes}
-                    onChange={(e) => setFormData({ ...formData, discount_notes: e.target.value })}
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className="pt-2 border-t border-slate-100">
-              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">3. Informasi Orang Tua / Wali</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormInput
-                  label="Nama Orang Tua / Wali"
-                  required
-                  icon={UserCheck}
-                  placeholder="Bambang Pratama"
-                  value={formData.parent_name}
-                  onChange={(e) => setFormData({ ...formData, parent_name: e.target.value })}
-                />
-                <FormInput
-                  label="Email Orang Tua (Login Portal)"
-                  type="email"
-                  required
-                  icon={Mail}
-                  placeholder="orangtua@gmail.com"
-                  value={formData.parent_email}
-                  onChange={(e) => setFormData({ ...formData, parent_email: e.target.value })}
-                />
-                <FormInput
-                  label="No. HP / WhatsApp Wali"
-                  type="tel"
-                  required
-                  icon={Phone}
-                  placeholder="08123456789"
-                  value={formData.parent_phone}
-                  onChange={(e) => setFormData({ ...formData, parent_phone: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-6 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setIsAddModalOpen(false)}
-                className="px-5 py-2.5 rounded-lg text-[13px] font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-[13px] font-semibold text-white shadow-sm transition-all disabled:opacity-50 flex items-center gap-2"
-              >
-                {submitting ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Menyimpan...
-                  </>
-                ) : (
-                  'Simpan Data Siswa'
-                )}
-              </button>
-            </div>
-          </form>
-        </Modal>
-
-        {/* MODAL EDIT SINGLE STUDENT */}
-        <Modal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          title="Edit Data Siswa"
-          subtitle={selectedStudent ? `${selectedStudent.name} — ${selectedStudent.nis}` : ''}
-        >
-          <form onSubmit={handleUpdate} className="space-y-6">
-            {error && (
-              <div className="px-3 py-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-[12px] font-medium">
-                {error}
-              </div>
-            )}
-
-            <div>
-              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">1. Profil Siswa</h4>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div className="md:col-span-2">
-                  <FormInput
-                    label="NIS Siswa"
-                    required
-                    icon={Hash}
-                    value={formData.nis}
-                    onChange={(e) => setFormData({ ...formData, nis: e.target.value })}
-                  />
-                </div>
-                <div className="md:col-span-3">
-                  <FormInput
-                    label="Nama Lengkap Siswa"
-                    required
-                    icon={User}
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <FormSelect
-                label="Kelas"
-                required
-                icon={GraduationCap}
-                value={formData.class}
-                onChange={(e) => setFormData({ ...formData, class: e.target.value })}
-              >
-                {CLASS_OPTIONS.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </FormSelect>
-              <FormSelect
-                label="Jurusan"
-                required
-                icon={Sparkles}
-                value={formData.major}
-                onChange={(e) => setFormData({ ...formData, major: e.target.value })}
-              >
-                {MAJOR_OPTIONS.map((m) => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </FormSelect>
-              <FormSelect
-                label="Tahun Masuk"
-                required
-                icon={Calendar}
-                value={formData.entry_year}
-                onChange={(e) => setFormData({ ...formData, entry_year: e.target.value })}
-              >
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-                <option value="2022">2022</option>
-              </FormSelect>
-            </div>
-
-            <div className="pt-2 border-t border-slate-100">
-              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">
-                2. Status Santri & Tarif Pembayaran Tersendiri
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-amber-50/40 p-3.5 rounded-xl border border-amber-100 mb-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1.5 uppercase">
-                    Status Santri Pondok
-                  </label>
-                  <div className="flex items-center gap-3">
-                    <label className="flex items-center gap-2 text-xs font-medium cursor-pointer text-slate-800">
-                      <input
-                        type="radio"
-                        name="is_santri_edit"
-                        checked={formData.is_santri === true}
-                        onChange={() => setFormData({ ...formData, is_santri: true })}
-                        className="text-amber-600 focus:ring-amber-500"
-                      />
-                      Santri Pondok
-                    </label>
-                    <label className="flex items-center gap-2 text-xs font-medium cursor-pointer text-slate-800">
-                      <input
-                        type="radio"
-                        name="is_santri_edit"
-                        checked={formData.is_santri === false}
-                        onChange={() => setFormData({ ...formData, is_santri: false })}
-                        className="text-amber-600 focus:ring-amber-500"
-                      />
-                      Non-Santri
-                    </label>
-                  </div>
-                </div>
-
-                <FormSelect
-                  label="Status Tempat Tinggal"
-                  value={formData.residence_type}
-                  onChange={(e) => setFormData({ ...formData, residence_type: e.target.value })}
-                >
-                  <option value="Non-Asrama">Non-Asrama (Pulang-Pergi)</option>
-                  <option value="Asrama">Asrama Pondok</option>
-                </FormSelect>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormInput
-                  label="Nominal SPP Tersendiri (Rp)"
-                  type="number"
-                  value={formData.spp_nominal}
-                  onChange={(e) => setFormData({ ...formData, spp_nominal: e.target.value })}
-                  helperText="Saluran: Yayasan Pondok Pesantren Al-Furqon"
-                />
-                <FormInput
-                  label="Nominal Anggaran Kegiatan (Rp)"
-                  type="number"
-                  value={formData.activity_nominal}
-                  onChange={(e) => setFormData({ ...formData, activity_nominal: e.target.value })}
-                  helperText="Saluran: Sekolah (SMA Al-Furqon)"
-                />
-              </div>
-
-              <div className="mt-3 bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.has_discount}
-                    onChange={(e) => setFormData({ ...formData, has_discount: e.target.checked })}
-                    className="rounded text-amber-600 focus:ring-amber-500"
-                  />
-                  Siswa Meminta / Mendapat Keringanan Biaya (Diskon Khusus)
-                </label>
-
-                {formData.has_discount && (
-                  <FormInput
-                    label="Catatan / Permohonan Keringanan"
-                    placeholder="Misal: Keringanan Santri Yatim / Permohonan Wali"
-                    value={formData.discount_notes}
-                    onChange={(e) => setFormData({ ...formData, discount_notes: e.target.value })}
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className="pt-2 border-t border-slate-100">
-              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">3. Informasi Orang Tua / Wali</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormInput
-                  label="Nama Orang Tua / Wali"
-                  icon={UserCheck}
-                  value={formData.parent_name}
-                  onChange={(e) => setFormData({ ...formData, parent_name: e.target.value })}
-                />
-                <FormInput
-                  label="No. HP / WA Wali"
-                  type="tel"
-                  icon={Phone}
-                  value={formData.parent_phone}
-                  onChange={(e) => setFormData({ ...formData, parent_phone: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-6 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setIsEditModalOpen(false)}
-                className="px-5 py-2.5 rounded-lg text-[13px] font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-[13px] font-semibold text-white shadow-sm transition-all disabled:opacity-50 flex items-center gap-2"
-              >
-                {submitting ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Memperbarui...
-                  </>
-                ) : (
-                  'Perbarui Data Siswa'
-                )}
-              </button>
-            </div>
-          </form>
-        </Modal>
       </div>
     </DashboardLayout>
   );

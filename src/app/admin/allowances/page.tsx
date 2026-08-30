@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
@@ -208,13 +209,13 @@ export default function AdminAllowancesPage() {
             </h2>
             <p className="text-xs text-slate-500 mt-1">Pencatatan mutasi saldo, pemasukan, pengeluaran, & e-money siswa</p>
           </div>
-          <button
-            onClick={handleOpenModal}
+          <Link
+            href="/admin/allowances/create"
             className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
             Catat Transaksi Uang Saku
-          </button>
+          </Link>
         </div>
 
         {/* Toolbar */}

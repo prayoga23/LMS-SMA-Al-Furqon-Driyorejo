@@ -2,6 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
 
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = getAuthUser(req);
+  if (!auth) {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const academicId = Number(id);
+
+  try {
+    const item = await prisma.academicInformation.findUnique({
+      where: { id: academicId },
+      include: {
+        createdBy: {
+          select: { id: true, name: true, role: true },
+        },
+      },
+    });
+
+    if (!item) {
+      return NextResponse.json({ message: 'Informasi akademik tidak ditemukan' }, { status: 404 });
+    }
+
+    return NextResponse.json(item);
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message || 'Gagal mengambil informasi akademik' }, { status: 500 });
+  }
+}
+
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = getAuthUser(req);
   if (!auth || !['admin', 'guru', 'staff'].includes(auth.role)) {
@@ -78,4 +107,3 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     return NextResponse.json({ message: error.message || 'Gagal menghapus informasi akademik' }, { status: 500 });
   }
 }
-

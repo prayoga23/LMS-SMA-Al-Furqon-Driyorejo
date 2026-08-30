@@ -160,7 +160,7 @@ export default function ParentDashboardPage() {
         <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-800 text-white shadow-xl shadow-emerald-900/15 border border-emerald-600/30">
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-center gap-4 min-w-0">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/25 flex items-center justify-center text-2xl sm:text-3xl font-black text-white shadow-md shrink-0">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center text-2xl sm:text-3xl font-black text-white shadow-md shrink-0">
                 {student?.name ? student.name.charAt(0).toUpperCase() : 'S'}
               </div>
               <div className="min-w-0">
@@ -183,7 +183,7 @@ export default function ParentDashboardPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <span className="px-3.5 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold text-white flex items-center gap-1.5 shadow-2xs">
+              <span className="px-3.5 py-1.5 rounded-xl bg-white/15 border border-white/20 text-xs font-bold text-white flex items-center gap-1.5 shadow-2xs">
                 <ShieldCheck className="w-4 h-4 text-emerald-300" />
                 Wali: {student?.parent?.user?.name || 'Orang Tua Siswa'}
               </span>

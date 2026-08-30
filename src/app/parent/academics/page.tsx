@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Badge } from '@/components/ui/Badge';
 import { api } from '@/lib/api';
@@ -133,7 +134,7 @@ export default function ParentAcademicsPage() {
                       <button
                         type="button"
                         onClick={() => setLightboxImage(item.imageUrl)}
-                        className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5 backdrop-blur-[2px]"
+                        className="absolute inset-0 opacity-0 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5"
                       >
                         <Eye className="w-4 h-4" /> Lihat Gambar
                       </button>
@@ -148,10 +149,24 @@ export default function ParentAcademicsPage() {
                         {item.date}
                       </span>
                     </div>
-                    <h3 className="text-base font-bold text-slate-900">{item.title}</h3>
-                    <p className="text-xs text-slate-600 whitespace-pre-line leading-relaxed">
+                    <Link
+                      href={`/parent/academics/${item.id}`}
+                      className="text-base font-bold text-slate-900 hover:text-emerald-700 transition-colors block"
+                    >
+                      {item.title}
+                    </Link>
+                    <p className="text-xs text-slate-600 whitespace-pre-line line-clamp-3 leading-relaxed">
                       {item.description}
                     </p>
+                    <div className="pt-2">
+                      <Link
+                        href={`/parent/academics/${item.id}`}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900 transition-colors"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Baca Detail Selengkapnya →</span>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -161,11 +176,11 @@ export default function ParentAcademicsPage() {
 
         {/* Lightbox Preview Modal */}
         {lightboxImage && (
-          <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setLightboxImage(null)}>
+          <div className="fixed inset-0 z-50 bg-slate-900/85 flex items-center justify-center p-4" onClick={() => setLightboxImage(null)}>
             <div className="relative max-w-4xl max-h-[90vh] bg-transparent overflow-hidden rounded-2xl" onClick={(e) => e.stopPropagation()}>
               <button
                 onClick={() => setLightboxImage(null)}
-                className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-slate-900/70 text-white flex items-center justify-center hover:bg-slate-900 transition-colors"
+                className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full text-white flex items-center justify-center"
               >
                 <X className="w-5 h-5" />
               </button>

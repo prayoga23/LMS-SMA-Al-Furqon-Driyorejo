@@ -185,7 +185,7 @@ function AdminTeacherAttendanceView() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 p-6 rounded-3xl text-white shadow-xl shadow-emerald-900/10 border border-emerald-600/30">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2.5">
-              <span className="p-2 rounded-xl bg-white/10 backdrop-blur-md text-emerald-200 border border-white/10">
+              <span className="p-2 rounded-xl bg-white/15 text-emerald-200 border border-white/10">
                 <Eye className="w-6 h-6" />
               </span>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
@@ -198,7 +198,7 @@ function AdminTeacherAttendanceView() {
           </div>
 
           {/* Clock & Date Badge */}
-          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 shrink-0 self-start sm:self-auto">
+          <div className="flex items-center gap-3 bg-white/15 px-4 py-3 rounded-2xl border border-white/15 shrink-0 self-start sm:self-auto">
             <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-200">
               <Clock className="w-5 h-5 animate-pulse" />
             </div>
@@ -556,7 +556,7 @@ function GuruSelfAttendanceView() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 p-6 rounded-3xl text-white shadow-xl shadow-emerald-900/10 border border-emerald-600/30">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2.5">
-              <span className="p-2 rounded-xl bg-white/10 backdrop-blur-md text-emerald-200 border border-white/10">
+              <span className="p-2 rounded-xl bg-white/15 text-emerald-200 border border-white/10">
                 <UserCheck className="w-6 h-6" />
               </span>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
@@ -569,7 +569,7 @@ function GuruSelfAttendanceView() {
           </div>
 
           {/* Clock & Date Badge */}
-          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 shrink-0 self-start sm:self-auto">
+          <div className="flex items-center gap-3 bg-white/15 px-4 py-3 rounded-2xl border border-white/15 shrink-0 self-start sm:self-auto">
             <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-200">
               <Clock className="w-5 h-5 animate-pulse" />
             </div>

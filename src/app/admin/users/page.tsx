@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
@@ -235,13 +236,13 @@ export default function AdminUsersPage() {
               Kelola akun pengguna, penambahan User Role Guru, Staff, Admin, dan Wali Murid
             </p>
           </div>
-          <button
-            onClick={handleOpenAddModal}
+          <Link
+            href="/admin/users/create"
             className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-800 hover:to-teal-800 text-white font-bold text-xs shadow-md shadow-emerald-700/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
             Tambah User Baru
-          </button>
+          </Link>
         </div>
 
         {/* Stats Cards */}
@@ -409,13 +410,13 @@ export default function AdminUsersPage() {
                         </td>
                         <td className="py-3.5 px-4">
                           <div className="flex items-center justify-center gap-1.5">
-                            <button
-                              onClick={() => handleOpenEditModal(u)}
+                            <Link
+                              href={`/admin/users/${u.id}/edit`}
                               className="p-2 text-emerald-700 hover:text-emerald-950 hover:bg-emerald-100/70 rounded-xl transition-colors"
                               title="Edit Data User"
                             >
                               <Edit className="w-4 h-4" />
-                            </button>
+                            </Link>
                             <button
                               onClick={() => handleDelete(u.id, u.name)}
                               className="p-2 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-xl transition-colors"

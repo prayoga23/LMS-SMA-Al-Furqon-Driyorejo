@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
@@ -265,13 +266,13 @@ export default function AdminAcademicsPage() {
             </h2>
             <p className="text-xs text-slate-500 mt-1">Publish pengumuman, jadwal ujian, jadwal pelajaran, kegiatan & prestasi sekolah</p>
           </div>
-          <button
-            onClick={handleOpenAddModal}
+          <Link
+            href="/admin/academics/create"
             className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
             Publish Informasi Baru
-          </button>
+          </Link>
         </div>
 
         {/* Filter Toolbar */}
@@ -360,7 +361,7 @@ export default function AdminAcademicsPage() {
                         <button
                           type="button"
                           onClick={() => setLightboxImage(item.imageUrl || null)}
-                          className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5 backdrop-blur-[2px]"
+                          className="absolute inset-0 bg-slate-900/50 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5"
                         >
                           <Eye className="w-4 h-4" /> Lihat Gambar
                         </button>
@@ -375,7 +376,12 @@ export default function AdminAcademicsPage() {
                           {item.date}
                         </span>
                       </div>
-                      <h3 className="text-base font-bold text-slate-900 mb-2 line-clamp-2 leading-snug">{item.title}</h3>
+                      <Link
+                        href={`/admin/academics/${item.id}`}
+                        className="text-base font-bold text-slate-900 mb-2 line-clamp-2 leading-snug hover:text-indigo-700 transition-colors block"
+                      >
+                        {item.title}
+                      </Link>
                       <p className="text-xs text-slate-600 whitespace-pre-line line-clamp-4 leading-relaxed">{item.description}</p>
                       
                       {/* Publisher info */}
@@ -393,8 +399,15 @@ export default function AdminAcademicsPage() {
                   </div>
 
                   <div className="flex justify-between items-center px-6 py-3.5 bg-slate-50/80 border-t border-slate-100">
-                    {canManage ? (
-                      <div className="flex justify-end items-center gap-2 w-full">
+                    <Link
+                      href={`/admin/academics/${item.id}`}
+                      className="px-3 py-1.5 text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100/60 rounded-lg transition-colors text-xs flex items-center gap-1 font-bold"
+                    >
+                      <Eye className="w-3.5 h-3.5" /> Detail Informasi
+                    </Link>
+
+                    {canManage && (
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleOpenEditModal(item)}
                           className="px-3 py-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors text-xs flex items-center gap-1 font-semibold"
@@ -408,11 +421,6 @@ export default function AdminAcademicsPage() {
                           <Trash2 className="w-3.5 h-3.5" /> Hapus
                         </button>
                       </div>
-                    ) : (
-                      <div className="w-full flex items-center justify-end text-[11px] text-slate-400 font-medium italic gap-1">
-                        <Lock className="w-3 h-3 text-slate-400" />
-                        Hanya Pembuat & Admin yang dapat mengedit/menghapus
-                      </div>
                     )}
                   </div>
                 </div>
@@ -421,159 +429,201 @@ export default function AdminAcademicsPage() {
           )}
         </div>
 
-        {/* Modal Add/Edit Academic Info */}
+        {/* Modal Add/Edit Academic Info (Full Screen / Spacious Layout) */}
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title={editingItem ? 'Edit Informasi Akademik' : 'Publish Informasi Akademik'}
-          subtitle={editingItem ? 'Perbarui informasi atau gambar pengumuman' : 'Buat pengumuman atau jadwal kegiatan sekolah'}
+          title={editingItem ? 'Edit Informasi Akademik Sekolah' : 'Buat & Publish Informasi Akademik'}
+          subtitle={editingItem ? 'Perbarui konten pengumuman, jadwal, atau gambar poster' : 'Isi formulir informasi di bawah ini untuk mempublikasikan pengumuman ke wali & siswa'}
+          maxWidth="max-w-7xl"
         >
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="px-3 py-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-[12px] font-medium">
-                {error}
+              <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
+                <X className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{error}</span>
               </div>
             )}
-            
-            <FormInput
-              label="Judul Informasi"
-              required
-              icon={FileText}
-              placeholder="misal: Penilaian Tengah Semester (PTS) Genap 2024/2025"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormSelect
-                label="Kategori"
-                required
-                icon={Tag}
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-              >
-                <option value="Jadwal Pelajaran">Jadwal Pelajaran</option>
-                <option value="Jadwal Ujian">Jadwal Ujian</option>
-                <option value="Prestasi">Prestasi Siswa</option>
-                <option value="Kegiatan">Kegiatan Sekolah</option>
-                <option value="Pengumuman">Pengumuman Akademik</option>
-              </FormSelect>
+            {/* 2-Column Responsive Grid Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Kolom Kiri: Form Input Utama (2/3 Lebar) */}
+              <div className="lg:col-span-2 space-y-5 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                <div className="border-b border-slate-100 pb-3">
+                  <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-emerald-600" />
+                    Detail Pengumuman & Konten
+                  </h4>
+                </div>
 
-              <FormInput
-                label="Tanggal Publish"
-                type="date"
-                required
-                icon={Calendar}
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              />
-            </div>
+                <FormInput
+                  label="Judul Informasi / Pengumuman"
+                  required
+                  icon={FileText}
+                  placeholder="misal: Pelaksanaan Penilaian Tengah Semester (PTS) Ganjil 2026/2027"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                />
 
-            <FormTextarea
-              label="Deskripsi Lengkap / Isi Pesan"
-              required
-              rows={4}
-              icon={FileText}
-              placeholder="Tuliskan detail pengumuman, daftar mata pelajaran, atau tata tertib di sini..."
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormSelect
+                    label="Kategori Informasi"
+                    required
+                    icon={Tag}
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
+                  >
+                    <option value="Jadwal Pelajaran">Jadwal Pelajaran</option>
+                    <option value="Jadwal Ujian">Jadwal Ujian</option>
+                    <option value="Prestasi">Prestasi Siswa</option>
+                    <option value="Kegiatan">Kegiatan Sekolah</option>
+                    <option value="Pengumuman">Pengumuman Akademik</option>
+                  </FormSelect>
 
-            {/* Input Upload Gambar */}
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
-                Upload Gambar / Poster (Opsional)
-              </label>
-              
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
+                  <FormInput
+                    label="Tanggal Publikasi"
+                    type="date"
+                    required
+                    icon={Calendar}
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  />
+                </div>
 
-              {imagePreview ? (
-                <div className="relative rounded-xl border border-indigo-200 bg-slate-50 p-2 overflow-hidden flex items-center gap-3">
-                  <div className="w-20 h-20 rounded-lg bg-white border border-slate-200 overflow-hidden shrink-0">
-                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                <FormTextarea
+                  label="Deskripsi Lengkap / Isi Pesan Pengumuman"
+                  required
+                  rows={10}
+                  icon={FileText}
+                  placeholder="Tuliskan isi pengumuman secara detail, tata tertib, jadwal, atau instruksi lengkap untuk wali murid & siswa di sini..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="leading-relaxed"
+                />
+              </div>
+
+              {/* Kolom Kanan: Upload Gambar & Preview (1/3 Lebar) */}
+              <div className="space-y-5">
+                {/* Upload Poster Box */}
+                <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+                  <div className="border-b border-slate-100 pb-3">
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-teal-600" />
+                      Gambar / Poster Pengumuman
+                    </h4>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-slate-800 truncate">
-                      {selectedFile ? selectedFile.name : 'Gambar saat ini'}
-                    </p>
-                    {selectedFile && (
-                      <p className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
-                        <CheckCircle2 className="w-3 h-3" /> Siap diunggah ({(selectedFile.size / 1024).toFixed(1)} KB)
-                      </p>
-                    )}
-                    <div className="flex items-center gap-2 mt-2">
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="px-2.5 py-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-md transition-colors"
-                      >
-                        Ganti Gambar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleRemoveImage}
-                        className="px-2.5 py-1 text-[11px] font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-md transition-colors"
-                      >
-                        Hapus Gambar
-                      </button>
+
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+
+                  {imagePreview ? (
+                    <div className="space-y-3">
+                      <div className="w-full h-48 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden relative group">
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="px-3 py-1.5 bg-white text-slate-900 font-bold text-xs rounded-lg shadow-md hover:bg-slate-100 transition-colors"
+                          >
+                            Ganti
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleRemoveImage}
+                            className="px-3 py-1.5 bg-rose-600 text-white font-bold text-xs rounded-lg shadow-md hover:bg-rose-700 transition-colors"
+                          >
+                            Hapus
+                          </button>
+                        </div>
+                      </div>
+                      {selectedFile && (
+                        <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Ready: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+                        </p>
+                      )}
                     </div>
+                  ) : (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="border-2 border-dashed border-emerald-200 hover:border-emerald-500 bg-emerald-50/30 hover:bg-emerald-50/70 rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2.5 group"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-white shadow-xs border border-emerald-200 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                        <Upload className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800 group-hover:text-emerald-800 transition-colors">
+                          Unggah Poster / Gambar
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          Klik untuk memilih file (JPG, PNG, WEBP maks 5MB)
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Live Card Preview Box */}
+                <div className="bg-slate-100/70 p-5 rounded-2xl border border-slate-200 space-y-2.5">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
+                    Pratinjau Kartu Pengumuman
+                  </span>
+                  <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <Badge variant="emerald">{formData.category || 'Pengumuman'}</Badge>
+                      <span className="text-[10px] font-mono text-slate-400">{formData.date}</span>
+                    </div>
+                    <h5 className="text-xs font-bold text-slate-900 line-clamp-1">
+                      {formData.title || 'Judul pengumuman...'}
+                    </h5>
+                    <p className="text-[11px] text-slate-500 line-clamp-2">
+                      {formData.description || 'Deskripsi lengkap pengumuman akan tampil di sini...'}
+                    </p>
                   </div>
                 </div>
-              ) : (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-200 hover:border-indigo-400 bg-slate-50/70 hover:bg-indigo-50/30 rounded-xl p-5 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 group"
-                >
-                  <div className="w-10 h-10 rounded-full bg-white shadow-xs border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:border-indigo-200 transition-colors">
-                    <Upload className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-700 group-hover:text-indigo-700 transition-colors">
-                      Klik di sini untuk unggah gambar
-                    </p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">
-                      Format disarankan: JPG, PNG, WEBP (Maksimal 5MB)
-                    </p>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-5 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-[13px] font-semibold text-white shadow-sm transition-all disabled:opacity-50 flex items-center gap-2"
-              >
-                {submitting ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>{editingItem ? 'Menyimpan...' : 'Publishing...'}</span>
-                  </>
-                ) : (
-                  <span>{editingItem ? 'Simpan Perubahan' : 'Publish Informasi'}</span>
-                )}
-              </button>
+            {/* Bottom Action Footer */}
+            <div className="flex items-center justify-between pt-5 border-t border-slate-200 bg-white">
+              <span className="text-xs text-slate-400 font-medium">
+                * Pastikan judul & isi informasi sudah sesuai sebelum di-publish.
+              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-6 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md shadow-emerald-700/20 transition-all disabled:opacity-50 flex items-center gap-2"
+                >
+                  {submitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>{editingItem ? 'Menyimpan...' : 'Mempublikasikan...'}</span>
+                    </>
+                  ) : (
+                    <span>{editingItem ? 'Simpan Perubahan' : 'Publish Informasi Sekolah'}</span>
+                  )}
+                </button>
+              </div>
             </div>
           </form>
         </Modal>
 
         {/* Lightbox Preview Modal */}
         {lightboxImage && (
-          <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setLightboxImage(null)}>
+          <div className="fixed inset-0 z-50 bg-slate-900/85 flex items-center justify-center p-4" onClick={() => setLightboxImage(null)}>
             <div className="relative max-w-4xl max-h-[90vh] bg-transparent overflow-hidden rounded-2xl" onClick={(e) => e.stopPropagation()}>
               <button
                 onClick={() => setLightboxImage(null)}

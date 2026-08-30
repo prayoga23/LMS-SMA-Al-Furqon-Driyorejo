@@ -28,23 +28,23 @@ export const FormInput: React.FC<FormInputProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wide">
+        <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">
           {label}
-          {required && <span className="text-rose-500 ml-0.5">*</span>}
+          {required && <span className="text-rose-500 ml-0.5 font-bold">*</span>}
         </label>
       )}
       <div className="relative group">
         {Icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors pointer-events-none">
-            <Icon className="w-[15px] h-[15px]" />
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors pointer-events-none">
+            <Icon className="w-4 h-4" />
           </div>
         )}
         <input
           value={value}
           disabled={disabled}
-          className={`w-full h-10 text-[13px] text-slate-900 placeholder-slate-400 font-medium bg-white border border-slate-200 rounded-lg transition-all duration-150 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 disabled:opacity-50 disabled:bg-slate-50 ${
-            Icon ? 'pl-9' : 'pl-3'
-          } ${onClear && value ? 'pr-8' : 'pr-3'} ${
+          className={`w-full h-11 text-sm text-slate-900 placeholder-slate-400 font-medium bg-white border border-slate-200 rounded-xl transition-all duration-150 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 disabled:opacity-50 disabled:bg-slate-50 ${
+            Icon ? 'pl-10' : 'pl-3.5'
+          } ${onClear && value ? 'pr-9' : 'pr-3.5'} ${
             error ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/10' : ''
           } ${className}`}
           {...props}
@@ -53,17 +53,17 @@ export const FormInput: React.FC<FormInputProps> = ({
           <button
             type="button"
             onClick={onClear}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-4 h-4" />
           </button>
         )}
       </div>
       {error && (
-        <p className="mt-1 text-[11px] text-rose-600 font-medium">{error}</p>
+        <p className="mt-1.5 text-xs text-rose-600 font-medium">{error}</p>
       )}
       {!error && helperText && (
-        <p className="mt-1 text-[11px] text-slate-400">{helperText}</p>
+        <p className="mt-1.5 text-xs text-slate-400">{helperText}</p>
       )}
     </div>
   );
@@ -93,22 +93,22 @@ export const FormSelect: React.FC<FormSelectProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wide">
+        <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">
           {label}
-          {required && <span className="text-rose-500 ml-0.5">*</span>}
+          {required && <span className="text-rose-500 ml-0.5 font-bold">*</span>}
         </label>
       )}
       <div className="relative group">
         {Icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors pointer-events-none">
-            <Icon className="w-[15px] h-[15px]" />
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors pointer-events-none">
+            <Icon className="w-4 h-4" />
           </div>
         )}
         <select
           disabled={disabled}
-          className={`w-full h-10 text-[13px] text-slate-900 font-medium bg-white border border-slate-200 rounded-lg transition-all duration-150 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 disabled:opacity-50 disabled:bg-slate-50 appearance-none cursor-pointer ${
-            Icon ? 'pl-9' : 'pl-3'
-          } pr-8 ${
+          className={`w-full h-11 text-sm text-slate-900 font-medium bg-white border border-slate-200 rounded-xl transition-all duration-150 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 disabled:opacity-50 disabled:bg-slate-50 appearance-none cursor-pointer ${
+            Icon ? 'pl-10' : 'pl-3.5'
+          } pr-9 ${
             error ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/10' : ''
           } ${className}`}
           {...props}
@@ -157,10 +157,10 @@ export const FormTextarea: React.FC<FormTextareaProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <div className="flex items-center justify-between mb-1">
-          <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
             {label}
-            {required && <span className="text-rose-500 ml-0.5">*</span>}
+            {required && <span className="text-rose-500 ml-0.5 font-bold">*</span>}
           </label>
           {maxLength && (
             <span className={`text-[10px] font-mono tabular-nums ${currentLength > maxLength ? 'text-rose-500' : 'text-slate-400'}`}>
@@ -171,26 +171,26 @@ export const FormTextarea: React.FC<FormTextareaProps> = ({
       )}
       <div className="relative group">
         {Icon && (
-          <div className="absolute left-3 top-2.5 text-slate-400 group-focus-within:text-emerald-600 transition-colors pointer-events-none">
-            <Icon className="w-[15px] h-[15px]" />
+          <div className="absolute left-3.5 top-3 text-slate-400 group-focus-within:text-emerald-600 transition-colors pointer-events-none">
+            <Icon className="w-4 h-4" />
           </div>
         )}
         <textarea
           value={value}
           maxLength={maxLength}
-          className={`w-full text-[13px] text-slate-900 placeholder-slate-400 font-medium bg-white border border-slate-200 rounded-lg py-2.5 transition-all duration-150 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 custom-scrollbar resize-none ${
-            Icon ? 'pl-9' : 'pl-3'
-          } pr-3 ${
+          className={`w-full text-sm text-slate-900 placeholder-slate-400 font-medium bg-white border border-slate-200 rounded-xl py-2.5 transition-all duration-150 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 custom-scrollbar resize-none ${
+            Icon ? 'pl-10' : 'pl-3.5'
+          } pr-3.5 ${
             error ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/10' : ''
           } ${className}`}
           {...props}
         />
       </div>
       {error && (
-        <p className="mt-1 text-[11px] text-rose-600 font-medium">{error}</p>
+        <p className="mt-1.5 text-xs text-rose-600 font-medium">{error}</p>
       )}
       {!error && helperText && (
-        <p className="mt-1 text-[11px] text-slate-400">{helperText}</p>
+        <p className="mt-1.5 text-xs text-slate-400">{helperText}</p>
       )}
     </div>
   );
@@ -270,11 +270,11 @@ export const FormStudentCombobox: React.FC<FormStudentComboboxProps> = ({
             setIsOpen(!isOpen);
             setTimeout(() => inputRef.current?.focus(), 50);
           }}
-          className={`w-full h-10 text-[13px] text-left bg-white border border-slate-200 rounded-lg pl-9 pr-8 flex items-center justify-between transition-all duration-150 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 ${
+          className={`w-full h-11 text-sm text-left bg-white border border-slate-200 rounded-xl pl-10 pr-9 flex items-center justify-between transition-all duration-150 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 ${
             error ? 'border-rose-400 focus:ring-rose-500/10' : ''
           }`}
         >
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-[15px] h-[15px] text-slate-400" />
+          <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
 
           {selectedStudent ? (
             <span className="font-semibold text-slate-900 truncate">

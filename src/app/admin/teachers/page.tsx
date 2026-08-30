@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
@@ -430,21 +431,21 @@ export default function AdminTeachersPage() {
                   </FormSelect>
                 </div>
 
-                <button
-                  onClick={handleOpenImportModal}
+                <Link
+                  href="/admin/teachers/import"
                   className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-emerald-800 hover:from-teal-800 hover:to-emerald-900 text-white font-bold text-xs shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <FileSpreadsheet className="w-4 h-4" />
                   Import Excel Guru
-                </button>
+                </Link>
 
-                <button
-                  onClick={handleOpenAddTeacher}
+                <Link
+                  href="/admin/teachers/create"
                   className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-800 hover:from-emerald-800 hover:to-emerald-900 text-white font-bold text-xs shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <Plus className="w-4 h-4" />
                   Tambah Guru Baru
-                </button>
+                </Link>
 
                 <button
                   onClick={fetchTeachers}
@@ -521,13 +522,13 @@ export default function AdminTeachersPage() {
                           </td>
                           <td className="py-3.5 px-4">
                             <div className="flex items-center justify-center gap-1.5">
-                              <button
-                                onClick={() => handleOpenEditTeacher(t)}
+                              <Link
+                                href={`/admin/teachers/${t.id}/edit`}
                                 className="p-2 text-emerald-700 hover:text-emerald-950 hover:bg-emerald-100/70 rounded-xl transition-colors"
                                 title="Edit Data Guru"
                               >
                                 <Edit className="w-4 h-4" />
-                              </button>
+                              </Link>
                               <button
                                 onClick={() => handleDeleteTeacher(t.id, t.name)}
                                 className="p-2 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-xl transition-colors"
@@ -703,6 +704,7 @@ export default function AdminTeachersPage() {
           onClose={() => setIsAddModalOpen(false)}
           title="Tambah Data Guru Baru"
           subtitle="Isi NIP, nama guru, mata pelajaran, dan kontak guru"
+          maxWidth="max-w-2xl"
         >
           <form onSubmit={handleCreateTeacher} className="space-y-4">
             {error && (
@@ -803,6 +805,7 @@ export default function AdminTeachersPage() {
           onClose={() => setIsEditModalOpen(false)}
           title="Edit Data Guru"
           subtitle={selectedTeacher ? `${selectedTeacher.name} — NIP: ${selectedTeacher.nip}` : ''}
+          maxWidth="max-w-2xl"
         >
           <form onSubmit={handleUpdateTeacher} className="space-y-4">
             {error && (
@@ -909,6 +912,7 @@ export default function AdminTeachersPage() {
           onClose={() => setIsTeacherAttendanceModalOpen(false)}
           title="Catat Presensi Guru (Harian)"
           subtitle={`Pencatatan kehadiran guru untuk tanggal: ${attendanceDate}`}
+          maxWidth="max-w-3xl"
         >
           <form onSubmit={handleSaveTeacherAttendance} className="space-y-5">
             {error && (

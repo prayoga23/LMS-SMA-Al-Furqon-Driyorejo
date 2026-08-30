@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { X, ArrowLeft } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -18,7 +18,7 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   subtitle,
   children,
-  maxWidth = 'max-w-5xl',
+  maxWidth = 'max-w-2xl',
 }) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -29,7 +29,7 @@ export const Modal: React.FC<ModalProps> = ({
       window.addEventListener('keydown', handleKeyDown);
     }
     return () => {
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
@@ -37,49 +37,44 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col modal-backdrop-enter overflow-hidden">
-      {/* Top Header Bar */}
-      <header className="bg-white border-b border-slate-100 px-6 sm:px-10 py-4 flex items-center justify-between shrink-0 z-10">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onClose}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-all"
-            title="Kembali ke Halaman Sebelumnya (Esc)"
-          >
-            <ArrowLeft className="w-4 h-4 text-slate-500" />
-            <span>Kembali</span>
-          </button>
-
-          <div className="h-5 w-px bg-slate-200" />
-
-          <div className="flex items-center gap-2.5">
-            <span className="w-1.5 h-6 bg-emerald-600 rounded-full inline-block shrink-0" />
-            <div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight tracking-tight">
+    // Backdrop — z-[200] memastikan di atas sidebar (z-50) dan navbar
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-slate-900/20 modal-backdrop-enter"
+      onClick={onClose}
+    >
+      {/* Modal Card */}
+      <div
+        className={`relative w-full ${maxWidth} bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col animate-scale-up overflow-hidden`}
+        style={{ maxHeight: '90vh' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header - Sticky */}
+        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="w-1 h-6 bg-emerald-600 rounded-full shrink-0" />
+            <div className="min-w-0">
+              <h3 className="text-base font-black text-slate-900 leading-tight truncate">
                 {title}
               </h3>
               {subtitle && (
-                <p className="text-[11px] text-slate-500 leading-none mt-0.5">{subtitle}</p>
+                <p className="text-xs text-slate-500 font-medium mt-0.5 truncate">{subtitle}</p>
               )}
             </div>
           </div>
+          <button
+            onClick={onClose}
+            className="ml-4 shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            title="Tutup (Esc)"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        <button
-          onClick={onClose}
-          className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-medium"
-        >
-          <span className="hidden sm:inline">Tutup</span>
-          <X className="w-4 h-4" />
-        </button>
-      </header>
-
-      {/* Main Fullscreen Form Content */}
-      <main className="flex-1 overflow-y-auto px-6 sm:px-10 py-6 sm:py-8 custom-scrollbar">
-        <div className={`mx-auto w-full ${maxWidth}`}>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
           {children}
         </div>
-      </main>
+      </div>
     </div>
   );
 };

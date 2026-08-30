@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
@@ -343,13 +344,13 @@ export default function AdminPaymentsPage() {
               Kelola tagihan siswa (Santri/Asrama/Keringanan) dan pemantauan saluran dana (Yayasan vs Sekolah)
             </p>
           </div>
-          <button
-            onClick={handleOpenAddModal}
+          <Link
+            href="/admin/payments/create"
             className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-xs shadow-md shadow-amber-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
             Buat Tagihan Baru
-          </button>
+          </Link>
         </div>
 
         {/* Fund Routing Summary Cards */}
@@ -568,13 +569,13 @@ export default function AdminPaymentsPage() {
                             >
                               <FileText className="w-4 h-4" />
                             </button>
-                            <button
-                              onClick={() => handleOpenEditModal(p)}
+                            <Link
+                              href={`/admin/payments/${p.id}/edit`}
                               className="p-1.5 text-amber-700 hover:text-amber-950 hover:bg-amber-100 rounded-lg transition-colors"
                               title="Edit Tagihan"
                             >
                               <Edit className="w-4 h-4" />
-                            </button>
+                            </Link>
                             <button
                               onClick={() => handleDelete(p.id, p.student?.name)}
                               className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-colors"
@@ -695,8 +696,8 @@ export default function AdminPaymentsPage() {
                   helperText={`Terbilang: Rp ${Number(formData.amount || 0).toLocaleString('id-ID')}`}
                 />
                 <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                  <span className="text-[10px] font-medium text-slate-400 mr-1">Cepat:</span>
-                  {['100000', '150000', '400000', '500000', '750000'].map((preset) => (
+                  <span className="text-[10px] font-medium text-slate-400 mr-1"></span>
+                  {['200000', '500000', '1000000', '2000000'].map((preset) => (
                     <button
                       key={preset}
                       type="button"

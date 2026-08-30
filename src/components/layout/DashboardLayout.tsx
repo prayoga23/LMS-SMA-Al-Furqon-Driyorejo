@@ -69,9 +69,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex-1 md:pl-64 flex flex-col min-w-0">
+      <div className="flex-1 md:pl-64 flex flex-col min-w-0 min-h-screen">
         <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        <main className="flex-1 p-3.5 sm:p-5 md:p-8 pb-20 md:pb-8 overflow-y-auto bg-slate-50">
+        <main className="flex-1 p-3.5 sm:p-5 md:p-8 pb-20 md:pb-8 bg-slate-50">
           {children}
         </main>
       </div>

@@ -444,12 +444,12 @@ export default function ParentPaymentsPage() {
 
         {/* MODAL 1: PEMBAYARAN ONLINE (PAYMENT GATEWAY MODAL) */}
         {payModalPayment && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="fixed inset-0 z-50 bg-slate-900/65 flex items-center justify-center p-4 animate-fade-in">
             <div className="w-full max-w-lg bg-white rounded-3xl border border-emerald-100 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
               {/* Modal Header */}
               <div className="p-5 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 text-white flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white">
+                  <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-white">
                     <CreditCard className="w-5 h-5" />
                   </div>
                   <div>
@@ -696,7 +696,7 @@ export default function ParentPaymentsPage() {
 
         {/* MODAL 2: BUKTI RESI SETORAN LUNAS (RECEIPT MODAL) */}
         {receiptData && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="fixed inset-0 z-50 bg-slate-900/65 flex items-center justify-center p-4 animate-fade-in">
             <div className="w-full max-w-md bg-white rounded-3xl border border-emerald-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
               {/* Receipt Header */}
               <div className="p-5 bg-emerald-800 text-white text-center relative">
@@ -706,7 +706,7 @@ export default function ParentPaymentsPage() {
                 >
                   <X className="w-5 h-5" />
                 </button>
-                <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mx-auto mb-2 text-emerald-300">
+                <div className="w-12 h-12 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center mx-auto mb-2 text-emerald-300">
                   <ShieldCheck className="w-7 h-7" />
                 </div>
                 <h3 className="text-lg font-black tracking-tight">BUKTI PEMBAYARAN LUNAS</h3>
