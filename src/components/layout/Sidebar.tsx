@@ -70,17 +70,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { label: 'Info Sekolah', href: '/parent/academics', icon: GraduationCap },
   ];
 
-  const guruBlockedHrefs = [
-    '/admin/students',
-    '/admin/teachers',
-    '/admin/users',
-    '/admin/payments',
-    '/admin/allowances',
+  const guruNav = [
+    { label: 'Dashboard Guru', href: '/admin/dashboard', icon: LayoutDashboard },
+    { label: 'Presensi Saya (Guru)', href: '/admin/teacher-attendance', icon: UserCheck },
+    { label: 'Presensi Siswa', href: '/admin/attendance', icon: CalendarCheck },
+    { label: 'Rapor & Nilai', href: '/admin/grades', icon: FileSpreadsheet },
+    { label: 'Informasi Sekolah', href: '/admin/academics', icon: GraduationCap },
   ];
 
   const navItems = isStaffOrAdmin
     ? user?.role === 'guru'
-      ? adminNav.filter((item) => !guruBlockedHrefs.includes(item.href))
+      ? guruNav
       : adminNav
     : parentNav;
 

@@ -82,7 +82,7 @@ const CLASS_OPTIONS = [
 ];
 
 const MAJOR_OPTIONS = [
-  'IPA (MIPA)',
+  'IPA',
   'IPS',
 ];
 

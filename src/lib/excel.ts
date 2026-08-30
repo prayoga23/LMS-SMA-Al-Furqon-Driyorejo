@@ -16,7 +16,7 @@ export const downloadStudentExcelTemplate = () => {
       'NIS': '20241099',
       'Nama Siswa': 'Budi Pratama',
       'Kelas': 'X IPA 1',
-      'Jurusan': 'IPA (MIPA)',
+      'Jurusan': 'IPA',
       'Tahun Masuk': 2024,
       'Nama Orang Tua': 'Hendra Pratama',
       'Email Orang Tua': 'budi.ortu@gmail.com',
