@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
+import { notificationService } from '@/lib/notification-service';
 
 function calculatePredicate(score: number): string {
   if (score >= 85) return 'A';
@@ -92,8 +93,26 @@ export async function POST(req: NextRequest) {
         score: numericScore,
         predicate: finalPredicate,
       },
-      include: { student: true },
+      include: {
+        student: {
+          include: { parent: true },
+        },
+      },
     });
+
+    // FCM Notification Trigger
+    if (grade.student?.parent?.userId) {
+      notificationService
+        .sendToUser({
+          userId: grade.student.parent.userId,
+          title: 'Nilai Baru Diterbitkan',
+          body: `Nilai ${grade.student.name} untuk pelajaran ${finalSubject} (${semester}) telah terbit: ${finalPredicate} (${numericScore}).`,
+          type: 'GRADE',
+          url: '/parent/grades',
+          createdBy: auth.id,
+        })
+        .catch((err) => console.error('[FCM Grade Trigger Error]:', err));
+    }
 
     return NextResponse.json({
       message: 'Nilai siswa berhasil disimpan',

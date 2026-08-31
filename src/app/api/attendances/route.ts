@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
+import { notificationService } from '@/lib/notification-service';
 
 async function getTeacherSubject(auth: any): Promise<string | null> {
   if (auth.subject) return auth.subject;
@@ -130,13 +131,34 @@ export async function POST(req: NextRequest) {
       attendance = await prisma.attendance.update({
         where: { id: existing.id },
         data: { status, subject: finalSubject, session: finalSession },
-        include: { student: true },
+        include: {
+          student: {
+            include: { parent: true },
+          },
+        },
       });
     } else {
       attendance = await prisma.attendance.create({
         data: { studentId, date, status, subject: finalSubject, session: finalSession },
-        include: { student: true },
+        include: {
+          student: {
+            include: { parent: true },
+          },
+        },
       });
+    }
+
+    if (attendance.student?.parent?.userId) {
+      notificationService
+        .sendToUser({
+          userId: attendance.student.parent.userId,
+          title: 'Update Presensi Siswa',
+          body: `Presensi ${attendance.student.name} pada ${date}: ${status}${finalSubject ? ` (${finalSubject})` : ''}.`,
+          type: 'ATTENDANCE',
+          url: '/parent/attendance',
+          createdBy: auth.id,
+        })
+        .catch((err) => console.error('[FCM Attendance Trigger Error]:', err));
     }
 
     return NextResponse.json({

@@ -18,6 +18,9 @@ model User {
 
   parent Parents?
   academicInformations AcademicInformation[]
+  devices UserDevice[]
+  createdNotifications Notification[] @relation("CreatedNotifications")
+  receivedNotifications NotificationRecipient[] @relation("ReceivedNotifications")
 }
 
 model Parents {
@@ -160,5 +163,51 @@ model TeacherAttendance {
   updatedAt DateTime @updatedAt
 
   @@map("teacher_attendances")
+}
+
+model UserDevice {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fcmToken    String   @unique
+  platform    String   @default("WEB")
+  deviceName  String?
+  browser     String?
+  appVersion  String?
+  isActive    Boolean  @default(true)
+  lastSeenAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("user_devices")
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  title       String
+  body        String
+  type        String   @default("SYSTEM")
+  url         String?
+  imageUrl    String?
+  createdBy   Int?
+  author      User?    @relation("CreatedNotifications", fields: [createdBy], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+
+  recipients  NotificationRecipient[]
+
+  @@map("notifications")
+}
+
+model NotificationRecipient {
+  id             Int          @id @default(autoincrement())
+  notificationId Int
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  userId         Int
+  user           User         @relation("ReceivedNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  status         String       @default("PENDING")
+  sentAt         DateTime?
+  readAt         DateTime?
+
+  @@map("notification_recipients")
 }
 

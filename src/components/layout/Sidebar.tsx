@@ -20,6 +20,7 @@ import {
   Building2,
   BookMarked,
   UserCheck,
+  Bell,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -60,10 +61,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { label: 'Rapor & Nilai', href: '/admin/grades', icon: FileSpreadsheet },
     { label: 'Uang Saku Siswa', href: '/admin/allowances', icon: Wallet },
     { label: 'Informasi Sekolah', href: '/admin/academics', icon: GraduationCap },
+    { label: 'Pusat Notifikasi', href: '/admin/notifications', icon: Bell },
   ];
 
   const parentNav = [
     { label: 'Dashboard Orang Tua', href: '/parent/dashboard', icon: Home },
+    { label: 'Notifikasi', href: '/parent/notifications', icon: Bell },
     { label: 'Pembayaran SPP', href: '/parent/payments', icon: CreditCard },
     { label: 'Presensi Siswa', href: '/parent/attendance', icon: CalendarCheck },
     { label: 'Nilai & Rapor', href: '/parent/grades', icon: BookOpen },
