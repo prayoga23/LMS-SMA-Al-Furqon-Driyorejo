@@ -10,14 +10,24 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
 };
 
-export const getFirebaseApp = (): FirebaseApp => {
+export const getFirebaseApp = (): FirebaseApp | null => {
+  if (!firebaseConfig.apiKey) {
+    return null;
+  }
   return !getApps().length ? initializeApp(firebaseConfig) : getApp();
 };
 
 export const getFirebaseMessaging = async (): Promise<Messaging | null> => {
   if (typeof window === 'undefined') return null;
-  const supported = await isSupported();
-  if (!supported) return null;
-  const app = getFirebaseApp();
-  return getMessaging(app);
+  if (!firebaseConfig.apiKey) return null;
+  try {
+    const supported = await isSupported().catch(() => false);
+    if (!supported) return null;
+    const app = getFirebaseApp();
+    if (!app) return null;
+    return getMessaging(app);
+  } catch (err) {
+    console.warn('[Firebase] Messaging initialization skipped:', err);
+    return null;
+  }
 };
