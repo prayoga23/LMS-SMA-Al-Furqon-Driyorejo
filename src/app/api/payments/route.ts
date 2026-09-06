@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
+import { notificationService } from '@/lib/notification-service';
 
 export async function GET(req: NextRequest) {
   const auth = getAuthUser(req);
@@ -70,6 +71,27 @@ export async function POST(req: NextRequest) {
       },
       include: { student: true },
     });
+
+    // Trigger FCM notification to Parent user if student is linked to a parent
+    try {
+      const studentWithParent = await prisma.student.findUnique({
+        where: { id: Number(student_id) },
+        include: { parent: true },
+      });
+
+      if (studentWithParent?.parent?.userId) {
+        await notificationService.sendToUser({
+          userId: studentWithParent.parent.userId,
+          title: `Tagihan ${category} Baru - ${studentWithParent.name}`,
+          body: `Tagihan ${payment.title} (${payment.semester}) sebesar Rp ${Number(amount).toLocaleString('id-ID')} telah diterbitkan.`,
+          type: 'SPP',
+          url: '/parent/payments',
+          createdBy: auth.id,
+        });
+      }
+    } catch (notifErr) {
+      console.error('Failed sending FCM payment notification:', notifErr);
+    }
 
     return NextResponse.json(
       {

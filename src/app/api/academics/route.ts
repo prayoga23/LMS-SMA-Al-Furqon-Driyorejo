@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
+import { notificationService } from '@/lib/notification-service';
 
 export async function GET(req: NextRequest) {
   const auth = getAuthUser(req);
@@ -77,6 +78,29 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    // Trigger FCM notification broadcast to all Parent role users
+    try {
+      const parentUsers = await prisma.user.findMany({
+        where: { role: 'parent' },
+        select: { id: true },
+      });
+
+      const parentUserIds = parentUsers.map((u) => u.id);
+
+      if (parentUserIds.length > 0) {
+        await notificationService.sendToUsers({
+          userIds: parentUserIds,
+          title: `[Info Sekolah] ${title}`,
+          body: description.length > 120 ? `${description.substring(0, 120)}...` : description,
+          type: 'ANNOUNCEMENT',
+          url: '/parent/academics',
+          createdBy: auth.id,
+        });
+      }
+    } catch (notifErr) {
+      console.error('Failed sending FCM academic notification to parents:', notifErr);
+    }
 
     return NextResponse.json({
       message: 'Informasi akademik berhasil ditambahkan',

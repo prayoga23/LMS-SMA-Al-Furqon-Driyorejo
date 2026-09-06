@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
         id: true,
         name: true,
         email: true,
+        password: true,
         role: true,
         createdAt: true,
         updatedAt: true,

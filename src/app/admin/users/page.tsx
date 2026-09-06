@@ -35,6 +35,7 @@ interface UserData {
   id: number;
   name: string;
   email: string;
+  password?: string;
   role: 'admin' | 'guru' | 'staff' | 'parent' | string;
   createdAt: string;
   parent?: {
@@ -55,6 +56,11 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
+  const [showPasswordMap, setShowPasswordMap] = useState<Record<number, boolean>>({});
+
+  const toggleShowPassword = (id: number) => {
+    setShowPasswordMap((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -354,6 +360,7 @@ export default function AdminUsersPage() {
                 <tr>
                   <th className="py-3.5 px-4">Pengguna</th>
                   <th className="py-3.5 px-4">Email Login</th>
+                  <th className="py-3.5 px-4">Kata Sandi</th>
                   <th className="py-3.5 px-4">Role / Hak Akses</th>
                   <th className="py-3.5 px-4">Tanggal Dibuat</th>
                   <th className="py-3.5 px-4 text-center">Aksi</th>
@@ -362,14 +369,14 @@ export default function AdminUsersPage() {
               <tbody className="divide-y divide-slate-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-12">
+                    <td colSpan={6} className="text-center py-12">
                       <div className="w-7 h-7 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                       <p className="text-xs text-slate-500 font-medium">Memuat data pengguna...</p>
                     </td>
                   </tr>
                 ) : users.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-12 text-slate-400">
+                    <td colSpan={6} className="text-center py-12 text-slate-400">
                       <Users className="w-10 h-10 mx-auto mb-2 text-slate-300" />
                       <p className="font-semibold text-slate-600">Tidak ada data pengguna ditemukan</p>
                       <p className="text-[11px] text-slate-400 mt-1">
@@ -380,6 +387,7 @@ export default function AdminUsersPage() {
                 ) : (
                   users.map((u) => {
                     const roleInfo = getRoleDisplay(u.role);
+                    const isPassShown = Boolean(showPasswordMap[u.id]);
                     return (
                       <tr key={u.id} className="hover:bg-emerald-50/40 transition-colors">
                         <td className="py-3.5 px-4 font-bold text-slate-900">
@@ -393,6 +401,21 @@ export default function AdminUsersPage() {
                           </div>
                         </td>
                         <td className="py-3.5 px-4 font-medium text-slate-600">{u.email}</td>
+                        <td className="py-3.5 px-4 font-mono text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-700 font-semibold tracking-wider max-w-[140px] truncate">
+                              {isPassShown ? (u.password || '••••••••') : '••••••••'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => toggleShowPassword(u.id)}
+                              className="p-1 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                              title={isPassShown ? 'Sembunyikan Password' : 'Tampilkan Password'}
+                            >
+                              {isPassShown ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        </td>
                         <td className="py-3.5 px-4">
                           <Badge variant={roleInfo.variant}>{roleInfo.label}</Badge>
                         </td>

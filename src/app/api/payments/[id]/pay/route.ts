@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
+import { notificationService } from '@/lib/notification-service';
 
 export async function POST(
   req: NextRequest,
@@ -59,9 +60,28 @@ export async function POST(
         notes: noteText,
       },
       include: {
-        student: true,
+        student: {
+          include: {
+            parent: true,
+          },
+        },
       },
     });
+
+    try {
+      if (updatedPayment.student?.parent?.userId) {
+        await notificationService.sendToUser({
+          userId: updatedPayment.student.parent.userId,
+          title: `Pembayaran Online SPP LUNAS - ${updatedPayment.student.name}`,
+          body: `Pembayaran ${updatedPayment.title} (${updatedPayment.semester}) sebesar Rp ${updatedPayment.amount.toLocaleString('id-ID')} via ${channelText} telah berhasil dikonfirmasi LUNAS.`,
+          type: 'SPP',
+          url: '/parent/payments',
+          createdBy: auth.id,
+        });
+      }
+    } catch (notifErr) {
+      console.error('Failed sending FCM online payment notification:', notifErr);
+    }
 
     return NextResponse.json({
       message: 'Pembayaran online berhasil dikonfirmasi!',

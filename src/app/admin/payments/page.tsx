@@ -448,6 +448,10 @@ export default function AdminPaymentsPage() {
               <option value="">Semua Semester</option>
               <option value="Semester 1">Semester 1</option>
               <option value="Semester 2">Semester 2</option>
+              <option value="Semester 3">Semester 3</option>
+              <option value="Semester 4">Semester 4</option>
+              <option value="Semester 5">Semester 5</option>
+              <option value="Semester 6">Semester 6</option>
             </FormSelect>
 
             {(search || statusFilter || categoryFilter || semesterFilter) && (
@@ -674,6 +678,10 @@ export default function AdminPaymentsPage() {
               >
                 <option value="Semester 1">Semester 1</option>
                 <option value="Semester 2">Semester 2</option>
+                <option value="Semester 3">Semester 3</option>
+                <option value="Semester 4">Semester 4</option>
+                <option value="Semester 5">Semester 5</option>
+                <option value="Semester 6">Semester 6</option>
               </FormSelect>
 
               <FormInput

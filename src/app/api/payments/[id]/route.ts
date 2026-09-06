@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
+import { notificationService } from '@/lib/notification-service';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = getAuthUser(req);
@@ -52,8 +53,32 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         status,
         notes,
       },
-      include: { student: true },
+      include: {
+        student: {
+          include: {
+            parent: true,
+          },
+        },
+      },
     });
+
+    try {
+      if (payment.student?.parent?.userId) {
+        const isLunas = status === 'Lunas';
+        await notificationService.sendToUser({
+          userId: payment.student.parent.userId,
+          title: isLunas ? `Pembayaran SPP Lunas - ${payment.student.name}` : `Update SPP - ${payment.student.name}`,
+          body: isLunas
+            ? `Pembayaran ${payment.title} (${payment.semester}) sebesar Rp ${payment.amount.toLocaleString('id-ID')} telah terverifikasi LUNAS.`
+            : `Data tagihan ${payment.title} (${payment.semester}) telah diperbarui oleh pihak sekolah.`,
+          type: 'SPP',
+          url: '/parent/payments',
+          createdBy: auth.id,
+        });
+      }
+    } catch (notifErr) {
+      console.error('Failed sending FCM payment update notification:', notifErr);
+    }
 
     return NextResponse.json({
       message: 'Data pembayaran berhasil diperbarui',
