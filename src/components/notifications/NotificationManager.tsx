@@ -48,7 +48,16 @@ export const NotificationManager: React.FC = () => {
     try {
       if (!('serviceWorker' in navigator)) return;
 
-      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+      if (!apiKey) return;
+
+      const messagingSenderId = process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '';
+      const appId = process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '';
+      const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'lms-sma-al-furqon';
+
+      const swUrl = `/firebase-messaging-sw.js?apiKey=${encodeURIComponent(apiKey)}&messagingSenderId=${encodeURIComponent(messagingSenderId)}&appId=${encodeURIComponent(appId)}&projectId=${encodeURIComponent(projectId)}`;
+
+      const registration = await navigator.serviceWorker.register(swUrl);
       const messaging = await getFirebaseMessaging();
       if (!messaging) return;
 
