@@ -31,6 +31,7 @@ import {
   AlertTriangle,
   FileText,
   Megaphone,
+  QrCode,
 } from 'lucide-react';
 import {
   PieChart,
@@ -634,7 +635,7 @@ function GuruDashboardView() {
           </div>
         </div>
 
-        {/* ─── 2. Presensi Guru Hari Ini WIDGET ─── */}
+        {/* ─── 2. Status Presensi Guru Hari Ini (Pos Piket) ─── */}
         <div className="bg-white rounded-3xl p-6 border border-emerald-100 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
@@ -643,7 +644,7 @@ function GuruDashboardView() {
               </div>
               <div>
                 <h2 className="font-extrabold text-base text-slate-900">
-                  Presensi Guru Hari Ini
+                  Presensi Guru Hari Ini (Pos Piket Sekolah)
                 </h2>
                 <p className="text-xs text-slate-500">
                   {formatDateIndo(data?.todayDate)}
@@ -651,18 +652,17 @@ function GuruDashboardView() {
               </div>
             </div>
 
-            {data?.todayAttendance && !isEditingToday && (
-              <button
-                onClick={() => setIsEditingToday(true)}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-all flex items-center gap-1.5"
-              >
-                Ubah Presensi
-              </button>
-            )}
+            <Link
+              href="/admin/teacher-attendance"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-all flex items-center gap-1.5"
+            >
+              <QrCode className="w-4 h-4 text-emerald-700" />
+              Buka QR Presensi
+            </Link>
           </div>
 
-          {data?.todayAttendance && !isEditingToday ? (
-            /* Sudah Presensi Display */
+          {data?.todayAttendance ? (
+            /* Sudah Tercatat oleh Pos Piket */
             <div className="bg-gradient-to-r from-emerald-50 via-teal-50/50 to-white border border-emerald-200/80 rounded-2xl p-4 sm:p-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3.5">
@@ -682,8 +682,10 @@ function GuruDashboardView() {
                         {new Date(data.todayAttendance.createdAt).toLocaleTimeString('id-ID', {
                           hour: '2-digit',
                           minute: '2-digit',
-                        })}
-                      </span>
+                        })}{' '}
+                        WIB
+                      </span>{' '}
+                      • Terverifikasi Pos Piket Sekolah
                     </p>
                   </div>
                 </div>
@@ -697,92 +699,37 @@ function GuruDashboardView() {
               </div>
             </div>
           ) : (
-            /* Form Presensi Hari Ini */
-            <form onSubmit={handleSubmitAttendance} className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>
-                    {data?.todayAttendance
-                      ? 'Mengubah status presensi guru hari ini.'
-                      : 'Anda belum mencatat presensi hari ini. Silakan pilih status dan klik simpan.'}
-                  </span>
+            /* Belum Presensi di Pos Piket Notice */
+            <div className="bg-gradient-to-r from-amber-50 via-orange-50/40 to-white border border-amber-200/90 rounded-2xl p-5">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0 mt-0.5 sm:mt-0">
+                    <AlertTriangle className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-extrabold text-sm text-amber-950">
+                        Belum Presensi di Pos Piket Sekolah
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200/80 text-amber-900 border border-amber-300">
+                        Wajib di Sekolah
+                      </span>
+                    </div>
+                    <p className="text-xs text-amber-800/90 leading-relaxed max-w-2xl">
+                      Sesuai tata tertib kehadiran, presensi mandiri telah dinonaktifkan. Silakan tunjukkan <strong>QR Code Presensi Anda</strong> ke Guru Piket saat tiba di sekolah untuk dipindai, atau scan QR Pos Piket.
+                    </p>
+                  </div>
                 </div>
-                {data?.todayAttendance && (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingToday(false)}
-                    className="text-xs font-bold text-slate-600 underline hover:text-slate-900"
-                  >
-                    Batal
-                  </button>
-                )}
-              </div>
 
-              <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2">
-                  Pilih Status Kehadiran Guru:
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {(['Hadir', 'Izin', 'Sakit', 'Alpha'] as const).map((st) => {
-                    const isSelected = selectedStatus === st;
-                    return (
-                      <button
-                        key={st}
-                        type="button"
-                        onClick={() => setSelectedStatus(st)}
-                        className={`p-3 rounded-2xl border text-xs font-extrabold flex items-center justify-center gap-2 transition-all duration-200 ${isSelected
-                            ? st === 'Hadir'
-                              ? 'bg-emerald-700 text-white border-emerald-700 shadow-md shadow-emerald-700/20 scale-[1.02]'
-                              : st === 'Sakit'
-                                ? 'bg-sky-600 text-white border-sky-600 shadow-md shadow-sky-600/20 scale-[1.02]'
-                                : st === 'Izin'
-                                  ? 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-600/20 scale-[1.02]'
-                                  : 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-600/20 scale-[1.02]'
-                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-emerald-50 hover:border-emerald-200'
-                          }`}
-                      >
-                        {isSelected && <Check className="w-4 h-4" />}
-                        {st}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Catatan / Keterangan (Opsional):
-                </label>
-                <input
-                  type="text"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Contoh: Mengajar jam ke-1 s.d 4 / Sakit flu"
-                  className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={submittingAttendance}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 text-white font-extrabold text-xs shadow-md shadow-emerald-700/20 hover:from-emerald-800 hover:to-teal-800 transition-all flex items-center gap-2 disabled:opacity-50"
+                <Link
+                  href="/admin/teacher-attendance"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 text-white font-extrabold text-xs shadow-md shadow-emerald-700/20 hover:from-emerald-800 hover:to-teal-800 transition-all flex items-center justify-center gap-2 shrink-0"
                 >
-                  {submittingAttendance ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Menyimpan...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      Simpan Presensi Hari Ini
-                    </>
-                  )}
-                </button>
+                  <QrCode className="w-4 h-4" />
+                  Buka Kartu QR Presensi
+                </Link>
               </div>
-            </form>
+            </div>
           )}
         </div>
 
@@ -835,14 +782,14 @@ function GuruDashboardView() {
             >
               <div className="space-y-2">
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 group-hover:bg-emerald-700 group-hover:text-white transition-colors flex items-center justify-center font-bold">
-                  <UserCheck className="w-5 h-5" />
+                  <QrCode className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-emerald-800 transition-colors">
-                    Presensi Saya (Guru)
+                    QR Presensi Guru
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Riwayat & rekap absensi mandiri guru
+                    Tunjukkan QR Code ke Guru Piket di sekolah
                   </p>
                 </div>
               </div>

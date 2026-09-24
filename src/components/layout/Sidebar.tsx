@@ -21,6 +21,7 @@ import {
   BookMarked,
   UserCheck,
   Bell,
+  QrCode,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -54,7 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { label: 'Data Siswa', href: '/admin/students', icon: Users },
     { label: 'Data Guru', href: '/admin/teachers', icon: Building2 },
     { label: 'Mata Pelajaran', href: '/admin/subjects', icon: BookMarked },
-    { label: 'Presensi Guru', href: '/admin/teacher-attendance', icon: UserCheck },
+    { label: 'Presensi Guru (Piket)', href: '/admin/teacher-attendance', icon: UserCheck },
     { label: 'Manajemen User', href: '/admin/users', icon: UserCog },
     { label: 'Pembayaran SPP', href: '/admin/payments', icon: CreditCard },
     { label: 'Presensi Siswa', href: '/admin/attendance', icon: CalendarCheck },
@@ -76,7 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const guruNav = [
     { label: 'Dashboard Guru', href: '/admin/dashboard', icon: LayoutDashboard },
-    { label: 'Presensi Saya (Guru)', href: '/admin/teacher-attendance', icon: UserCheck },
+    { label: 'QR Presensi Guru', href: '/admin/teacher-attendance', icon: QrCode },
     { label: 'Presensi Siswa', href: '/admin/attendance', icon: CalendarCheck },
     { label: 'Mata Pelajaran', href: '/admin/subjects', icon: BookMarked },
     { label: 'Rapor & Nilai', href: '/admin/grades', icon: FileSpreadsheet },

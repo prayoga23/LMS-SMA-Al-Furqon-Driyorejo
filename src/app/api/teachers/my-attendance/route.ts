@@ -85,10 +85,20 @@ export async function GET(req: NextRequest) {
     const totalHari = history.length;
     const percentage = totalHari > 0 ? Math.round((totalHadir / totalHari) * 100) : 100;
 
+    // QR Payload for Teacher to show Guru Piket
+    const qrPayload = JSON.stringify({
+      type: 'ALFURQON_TEACHER_QR',
+      teacherId: teacher.id,
+      nip: teacher.nip,
+      name: teacher.name,
+      timestamp: Date.now(),
+    });
+
     return NextResponse.json({
       teacher,
       todayDate: today,
       todayAttendance,
+      qrPayload,
       history,
       stats: {
         totalHadir,
@@ -115,50 +125,78 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const teacher = await findOrCreateTeacher(auth);
-    if (!teacher) {
-      return NextResponse.json(
-        { message: 'Data guru tidak ditemukan untuk akun ini.' },
-        { status: 404 }
-      );
-    }
-
     const body = await req.json();
-    const date = body.date || new Date().toISOString().split('T')[0];
-    const status = body.status || 'Hadir';
-    const notes = body.notes || '';
 
-    const existing = await prisma.teacherAttendance.findFirst({
-      where: {
-        teacherId: teacher.id,
-        date: date,
-      },
-    });
+    // Check if body contains kioskToken (Guru scans school kiosk QR)
+    if (body.kioskToken) {
+      let parsed: any = null;
+      try {
+        parsed = typeof body.kioskToken === 'string' ? JSON.parse(body.kioskToken) : body.kioskToken;
+      } catch {
+        parsed = null;
+      }
 
-    let record;
-    if (existing) {
-      record = await prisma.teacherAttendance.update({
-        where: { id: existing.id },
-        data: {
-          status,
-          notes,
-        },
+      const today = new Date().toISOString().split('T')[0];
+      if (!parsed || parsed.type !== 'ALFURQON_PIKET_KIOSK' || parsed.date !== today) {
+        return NextResponse.json(
+          { message: 'QR Code Pos Piket tidak valid atau tanggal tidak sesuai hari ini.' },
+          { status: 400 }
+        );
+      }
+
+      const teacher = await findOrCreateTeacher(auth);
+      if (!teacher) {
+        return NextResponse.json(
+          { message: 'Data guru tidak ditemukan untuk akun ini.' },
+          { status: 404 }
+        );
+      }
+
+      const existing = await prisma.teacherAttendance.findFirst({
+        where: { teacherId: teacher.id, date: today },
       });
-    } else {
-      record = await prisma.teacherAttendance.create({
-        data: {
-          teacherId: teacher.id,
-          date,
-          status,
-          notes,
-        },
+
+      if (existing && existing.status === 'Hadir') {
+        return NextResponse.json({
+          message: 'Anda sudah tercatat Hadir hari ini.',
+          attendance: existing,
+        });
+      }
+
+      let record;
+      if (existing) {
+        record = await prisma.teacherAttendance.update({
+          where: { id: existing.id },
+          data: {
+            status: 'Hadir',
+            notes: 'Presensi via Scan Layar Pos Piket',
+          },
+        });
+      } else {
+        record = await prisma.teacherAttendance.create({
+          data: {
+            teacherId: teacher.id,
+            date: today,
+            status: 'Hadir',
+            notes: 'Presensi via Scan Layar Pos Piket',
+          },
+        });
+      }
+
+      return NextResponse.json({
+        message: 'Presensi Hadir di Pos Piket berhasil dicatat!',
+        attendance: record,
       });
     }
 
-    return NextResponse.json({
-      message: 'Presensi berhasil dicatat',
-      attendance: record,
-    });
+    // Direct manual self-attendance is disallowed
+    return NextResponse.json(
+      {
+        message:
+          'Presensi mandiri langsung telah dinonaktifkan. Anda diwajibkan melakukan presensi saat tiba di sekolah melalui Scan QR di Pos Piket Sekolah atau melalui Guru Piket.',
+      },
+      { status: 403 }
+    );
   } catch (error: any) {
     console.error('Error POST /api/teachers/my-attendance:', error);
     return NextResponse.json(

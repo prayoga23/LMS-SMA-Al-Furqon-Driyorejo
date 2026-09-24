@@ -15,6 +15,7 @@ import {
   GraduationCap,
   FileSpreadsheet,
   UserCheck,
+  QrCode,
 } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
@@ -43,7 +44,7 @@ export const BottomNav: React.FC = () => {
 
   const guruNav = [
     { label: 'Beranda', href: '/admin/dashboard', icon: LayoutDashboard },
-    { label: 'Absen Guru', href: '/admin/teacher-attendance', icon: UserCheck },
+    { label: 'QR Presensi', href: '/admin/teacher-attendance', icon: QrCode },
     { label: 'Presensi Siswa', href: '/admin/attendance', icon: CalendarCheck },
     { label: 'Nilai', href: '/admin/grades', icon: FileSpreadsheet },
     { label: 'Info', href: '/admin/academics', icon: GraduationCap },
