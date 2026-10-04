@@ -65,6 +65,8 @@ interface StudentOption {
 export default function ParentDashboardPage() {
   const [data, setData] = useState<ParentDashboardData | null>(null);
   const [academics, setAcademics] = useState<AcademicInfo[]>([]);
+  const [recentNotifs, setRecentNotifs] = useState<any[]>([]);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
@@ -90,6 +92,10 @@ export default function ParentDashboardPage() {
 
       const resAcademic = await api.get('/academic');
       setAcademics(resAcademic.data.all || []);
+
+      const resNotif = await api.get('/notifications?limit=2');
+      setRecentNotifs(resNotif.data.notifications || []);
+      setUnreadNotifCount(resNotif.data.unreadCount || 0);
     } catch (err: any) {
       console.error('Error fetching parent student data:', err);
       showToast('error', 'Gagal memuat data siswa terikat.');
@@ -202,6 +208,70 @@ export default function ParentDashboardPage() {
           </div>
         </div>
 
+        {/* ─── NOTIFIKASI PENTING TERKINI (WEB APP VIEW BANNER) ─── */}
+        {recentNotifs.length > 0 && (
+          <div className="bg-gradient-to-r from-emerald-900/90 via-teal-900 to-slate-900 text-white rounded-3xl p-5 sm:p-6 border border-emerald-500/30 shadow-xl shadow-emerald-950/20">
+            <div className="flex items-center justify-between mb-3.5 border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                  <Bell className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-emerald-300 flex items-center gap-2">
+                    Notifikasi Penting Terkini
+                    {unreadNotifCount > 0 && (
+                      <span className="text-[10px] font-extrabold bg-rose-500 text-white px-2 py-0.5 rounded-full">
+                        {unreadNotifCount} Baru
+                      </span>
+                    )}
+                  </h4>
+                  <p className="text-[11px] text-slate-300 hidden sm:block">
+                    Pemberitahuan terkini untuk presensi, nilai, SPP, dan pengumuman.
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                href="/parent/notifications"
+                className="text-xs font-bold text-emerald-300 hover:text-white flex items-center gap-1 transition-colors px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15"
+              >
+                Semua Notifikasi <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {recentNotifs.map((n: any) => (
+                <Link
+                  key={n.id}
+                  href={n.url || '/parent/notifications'}
+                  className="p-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all flex items-start gap-3 group active:scale-[0.99]"
+                >
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 mt-1 shrink-0 group-hover:scale-125 transition-transform shadow-xs" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-1 mb-1">
+                      <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+                        {n.type}
+                      </span>
+                      <span className="text-[10px] text-slate-300 font-medium">
+                        {new Date(n.createdAt).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'short',
+                        })}
+                      </span>
+                    </div>
+                    <h5 className="text-xs font-bold text-white group-hover:text-emerald-200 transition-colors truncate">
+                      {n.title}
+                    </h5>
+                    <p className="text-[11px] text-slate-300 line-clamp-2 mt-0.5 leading-relaxed">
+                      {n.body}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ─── 2. REKAP RINGKASAN SISWA (4 KPI CARDS) ─── */}
         <div>
           <div className="flex items-center justify-between mb-3 px-0.5">
@@ -271,7 +341,7 @@ export default function ParentDashboardPage() {
               Pintasan Layanan Portal Wali Siswa
             </h3>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
             <Link
               href="/parent/payments"
               className="p-4 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:border-emerald-500 hover:shadow-md transition-all flex flex-col items-center text-center gap-2 group active:scale-95"
@@ -314,12 +384,25 @@ export default function ParentDashboardPage() {
 
             <Link
               href="/parent/academics"
-              className="p-4 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:border-emerald-500 hover:shadow-md transition-all flex flex-col items-center text-center gap-2 group active:scale-95 col-span-2 sm:col-span-1"
+              className="p-4 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:border-emerald-500 hover:shadow-md transition-all flex flex-col items-center text-center gap-2 group active:scale-95"
             >
               <div className="w-11 h-11 rounded-2xl bg-amber-100/80 text-amber-800 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors shadow-2xs">
                 <GraduationCap className="w-5 h-5" />
               </div>
               <span className="text-xs font-bold text-slate-900 truncate w-full">Info Sekolah</span>
+            </Link>
+
+            <Link
+              href="/parent/notifications"
+              className="p-4 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:border-emerald-500 hover:shadow-md transition-all flex flex-col items-center text-center gap-2 group active:scale-95 relative"
+            >
+              {unreadNotifCount > 0 && (
+                <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 rounded-full animate-pulse" />
+              )}
+              <div className="w-11 h-11 rounded-2xl bg-emerald-100/80 text-emerald-800 flex items-center justify-center group-hover:bg-emerald-700 group-hover:text-white transition-colors shadow-2xs">
+                <Bell className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-bold text-slate-900 truncate w-full">Notifikasi</span>
             </Link>
           </div>
         </div>

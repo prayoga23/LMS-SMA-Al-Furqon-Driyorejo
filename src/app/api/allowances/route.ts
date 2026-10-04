@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
+import { notificationService } from '@/lib/notification-service';
 
 export async function GET(req: NextRequest) {
   const auth = getAuthUser(req);
@@ -41,8 +42,37 @@ export async function POST(req: NextRequest) {
         expense: expense ? Number(expense) : 0,
         description,
       },
-      include: { student: true },
+      include: {
+        student: {
+          include: { parent: true },
+        },
+      },
     });
+
+    // Send notification to parent
+    if (allowance.student?.parent?.userId) {
+      const isExpense = Number(expense) > 0;
+      const nominalStr = isExpense
+        ? `Rp ${Number(expense).toLocaleString('id-ID')}`
+        : `Rp ${Number(income).toLocaleString('id-ID')}`;
+      const title = isExpense
+        ? `Pengeluaran Uang Saku - ${allowance.student.name}`
+        : `Pemasukan Uang Saku - ${allowance.student.name}`;
+      const notifBody = isExpense
+        ? `Tercatat penarikan/jajan uang saku ${nominalStr} pada ${date}: ${description || '-'}.`
+        : `Tercatat penambahan/top-up uang saku ${nominalStr} pada ${date}: ${description || '-'}.`;
+
+      notificationService
+        .sendToUser({
+          userId: allowance.student.parent.userId,
+          title,
+          body: notifBody,
+          type: 'SYSTEM',
+          url: '/parent/allowance',
+          createdBy: auth.id,
+        })
+        .catch((err) => console.error('[FCM Allowance Trigger Error]:', err));
+    }
 
     return NextResponse.json({
       message: 'Transaksi uang saku berhasil ditambahkan',
