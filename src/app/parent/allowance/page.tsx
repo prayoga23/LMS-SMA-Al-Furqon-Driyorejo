@@ -23,21 +23,78 @@ export default function ParentAllowancePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchAllowance();
+    try {
+      const cachedStudent = localStorage.getItem('parent_student_cache');
+      const cachedAllow = localStorage.getItem('parent_allowance_cache');
+      if (cachedStudent) {
+        setStudent(JSON.parse(cachedStudent));
+      }
+      if (cachedAllow) {
+        const parsed = JSON.parse(cachedAllow);
+        setBalance(parsed.balance || 0);
+        setTotalIncome(parsed.total_income || 0);
+        setTotalExpense(parsed.total_expense || 0);
+        setTransactions(parsed.transactions || []);
+        setLoading(false);
+        fetchAllowance(true);
+        return;
+      }
+    } catch (e) {}
+
+    fetchAllowance(false);
   }, []);
 
-  const fetchAllowance = async () => {
+  const fetchAllowance = async (isBackground = false) => {
     try {
-      setLoading(true);
-      const resStudent = await api.get('/student');
-      const studentId = resStudent.data.student.id;
-      setStudent(resStudent.data.student);
+      if (!isBackground) setLoading(true);
 
-      const resAllow = await api.get(`/allowance/student/${studentId}`);
-      setBalance(resAllow.data.balance);
-      setTotalIncome(resAllow.data.total_income);
-      setTotalExpense(resAllow.data.total_expense);
-      setTransactions(resAllow.data.transactions);
+      let studentId: number | null = null;
+      try {
+        const cachedStudent = localStorage.getItem('parent_student_cache');
+        if (cachedStudent) {
+          const parsed = JSON.parse(cachedStudent);
+          studentId = parsed.id;
+          setStudent(parsed);
+        }
+      } catch (e) {}
+
+      if (studentId) {
+        const [resStudent, resAllow] = await Promise.all([
+          api.get('/student'),
+          api.get(`/allowance/student/${studentId}`),
+        ]);
+        if (resStudent.data?.student) {
+          setStudent(resStudent.data.student);
+          try {
+            localStorage.setItem('parent_student_cache', JSON.stringify(resStudent.data.student));
+          } catch (e) {}
+        }
+        setBalance(resAllow.data.balance);
+        setTotalIncome(resAllow.data.total_income);
+        setTotalExpense(resAllow.data.total_expense);
+        setTransactions(resAllow.data.transactions);
+
+        try {
+          localStorage.setItem('parent_allowance_cache', JSON.stringify(resAllow.data));
+        } catch (e) {}
+      } else {
+        const resStudent = await api.get('/student');
+        const sid = resStudent.data.student.id;
+        setStudent(resStudent.data.student);
+        try {
+          localStorage.setItem('parent_student_cache', JSON.stringify(resStudent.data.student));
+        } catch (e) {}
+
+        const resAllow = await api.get(`/allowance/student/${sid}`);
+        setBalance(resAllow.data.balance);
+        setTotalIncome(resAllow.data.total_income);
+        setTotalExpense(resAllow.data.total_expense);
+        setTransactions(resAllow.data.transactions);
+
+        try {
+          localStorage.setItem('parent_allowance_cache', JSON.stringify(resAllow.data));
+        } catch (e) {}
+      }
     } catch (err) {
       console.error(err);
     } finally {

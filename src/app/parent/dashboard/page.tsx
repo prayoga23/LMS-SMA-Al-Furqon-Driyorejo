@@ -77,28 +77,85 @@ export default function ParentDashboardPage() {
   const [isLinking, setIsLinking] = useState(false);
 
   useEffect(() => {
-    fetchData();
+    // 1. Ambil data dari cache lokal terlebih dahulu jika ada agar langsung tampil tanpa loading lama
+    try {
+      const cached = localStorage.getItem('parent_dashboard_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.data) {
+          setData(parsed.data);
+          if (parsed.academics) setAcademics(parsed.academics);
+          if (parsed.recentNotifs) setRecentNotifs(parsed.recentNotifs);
+          if (parsed.unreadNotifCount !== undefined) setUnreadNotifCount(parsed.unreadNotifCount);
+          setLoading(false);
+          // Muat ulang data terbaru di background secara hening
+          fetchData(true);
+          return;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Jika belum ada cache, muat biasa
+    fetchData(false);
   }, []);
 
   const showToast = (type: 'success' | 'error' | 'info', message: string) => {
     setToast({ id: Date.now().toString(), type, message });
   };
 
-  const fetchData = async () => {
+  const fetchData = async (isBackground = false) => {
     try {
-      setLoading(true);
-      const resStudent = await api.get('/student');
-      setData(resStudent.data);
+      if (!isBackground) {
+        setLoading(true);
+      }
 
-      const resAcademic = await api.get('/academic');
-      setAcademics(resAcademic.data.all || []);
+      // Jalankan semua request secara paralel (Promise.all) agar tidak saling menunggu
+      const [resStudent, resAcademic, resNotif] = await Promise.all([
+        api.get('/student'),
+        api.get('/academic').catch(() => ({ data: { all: [] } })),
+        api.get('/notifications?limit=2').catch(() => ({ data: { notifications: [], unreadCount: 0 } })),
+      ]);
 
-      const resNotif = await api.get('/notifications?limit=2');
-      setRecentNotifs(resNotif.data.notifications || []);
-      setUnreadNotifCount(resNotif.data.unreadCount || 0);
+      if (resStudent?.data) {
+        setData(resStudent.data);
+        // Simpan cache student juga untuk sub-halaman presensi/nilai/keuangan
+        try {
+          if (resStudent.data.student) {
+            localStorage.setItem('parent_student_cache', JSON.stringify(resStudent.data.student));
+          }
+        } catch (e) {}
+      }
+
+      const academicList = resAcademic?.data?.all || [];
+      const notifList = resNotif?.data?.notifications || [];
+      const notifUnread = resNotif?.data?.unreadCount || 0;
+
+      setAcademics(academicList);
+      setRecentNotifs(notifList);
+      setUnreadNotifCount(notifUnread);
+
+      // Simpan ke cache lokal untuk percepat load berikutnya
+      try {
+        localStorage.setItem(
+          'parent_dashboard_cache',
+          JSON.stringify({
+            data: resStudent.data,
+            academics: academicList,
+            recentNotifs: notifList,
+            unreadNotifCount: notifUnread,
+            timestamp: Date.now(),
+          })
+        );
+      } catch (e) {
+        // ignore storage error
+      }
     } catch (err: any) {
       console.error('Error fetching parent student data:', err);
-      showToast('error', 'Gagal memuat data siswa terikat.');
+      if (!isBackground) {
+        showToast('error', 'Gagal memuat data siswa terikat.');
+      }
     } finally {
       setLoading(false);
     }

@@ -24,10 +24,23 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      const isLoginPage = window.location.pathname === '/login';
+      const currentUser = localStorage.getItem('user');
+      let role = '';
+      try {
+        if (currentUser) role = JSON.parse(currentUser)?.role;
+      } catch (e) {}
+
+      // Untuk akun orang tua (parent), jangan hapus sesi secara agresif pada data error biasa
+      const reqUrl = error.config?.url || '';
+      const isAuthRoute = reqUrl.includes('/me') || reqUrl.includes('/login') || reqUrl.includes('/logout');
+
+      if (isAuthRoute || role !== 'parent') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        if (!isLoginPage) {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);

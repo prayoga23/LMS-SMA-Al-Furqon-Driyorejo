@@ -28,19 +28,75 @@ export default function ParentAttendancePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchAttendanceData();
+    // Muat dari cache lokal terlebih dahulu jika ada
+    try {
+      const cachedStudent = localStorage.getItem('parent_student_cache');
+      const cachedAtt = localStorage.getItem('parent_attendance_cache');
+      if (cachedStudent) {
+        setStudent(JSON.parse(cachedStudent));
+      }
+      if (cachedAtt) {
+        const parsedAtt = JSON.parse(cachedAtt);
+        setSummary(parsedAtt.summary);
+        setRecords(parsedAtt.records);
+        setLoading(false);
+        fetchAttendanceData(true);
+        return;
+      }
+    } catch (e) {}
+
+    fetchAttendanceData(false);
   }, []);
 
-  const fetchAttendanceData = async () => {
+  const fetchAttendanceData = async (isBackground = false) => {
     try {
-      setLoading(true);
-      const resStudent = await api.get('/student');
-      const studentId = resStudent.data.student.id;
-      setStudent(resStudent.data.student);
+      if (!isBackground) setLoading(true);
 
-      const resAtt = await api.get(`/attendance/student/${studentId}`);
-      setSummary(resAtt.data.summary);
-      setRecords(resAtt.data.records);
+      // Cek apakah studentId sudah ada di cache
+      let studentId: number | null = null;
+      try {
+        const cachedStudent = localStorage.getItem('parent_student_cache');
+        if (cachedStudent) {
+          const parsed = JSON.parse(cachedStudent);
+          studentId = parsed.id;
+          setStudent(parsed);
+        }
+      } catch (e) {}
+
+      if (studentId) {
+        // Panggil keduanya secara paralel
+        const [resStudent, resAtt] = await Promise.all([
+          api.get('/student'),
+          api.get(`/attendance/student/${studentId}`),
+        ]);
+        if (resStudent.data?.student) {
+          setStudent(resStudent.data.student);
+          try {
+            localStorage.setItem('parent_student_cache', JSON.stringify(resStudent.data.student));
+          } catch (e) {}
+        }
+        setSummary(resAtt.data.summary);
+        setRecords(resAtt.data.records);
+
+        try {
+          localStorage.setItem('parent_attendance_cache', JSON.stringify(resAtt.data));
+        } catch (e) {}
+      } else {
+        const resStudent = await api.get('/student');
+        const sid = resStudent.data.student.id;
+        setStudent(resStudent.data.student);
+        try {
+          localStorage.setItem('parent_student_cache', JSON.stringify(resStudent.data.student));
+        } catch (e) {}
+
+        const resAtt = await api.get(`/attendance/student/${sid}`);
+        setSummary(resAtt.data.summary);
+        setRecords(resAtt.data.records);
+
+        try {
+          localStorage.setItem('parent_attendance_cache', JSON.stringify(resAtt.data));
+        } catch (e) {}
+      }
     } catch (err) {
       console.error(err);
     } finally {

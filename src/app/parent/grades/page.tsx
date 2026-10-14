@@ -28,21 +28,58 @@ export default function ParentGradesPage() {
   const pdfRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchGrades();
+    try {
+      const cachedStudent = localStorage.getItem('parent_student_cache');
+      const cachedGrades = localStorage.getItem(`parent_grades_${semesterFilter}_cache`);
+      if (cachedStudent && !student) {
+        setStudent(JSON.parse(cachedStudent));
+      }
+      if (cachedGrades) {
+        const parsed = JSON.parse(cachedGrades);
+        setGrades(parsed.grades || []);
+        setAverage(parsed.average || 0);
+        setLoading(false);
+        fetchGrades(true);
+        return;
+      }
+    } catch (e) {}
+
+    fetchGrades(false);
   }, [semesterFilter]);
 
-  const fetchGrades = async () => {
+  const fetchGrades = async (isBackground = false) => {
     try {
-      setLoading(true);
-      const resStudent = await api.get('/student');
-      const studentId = resStudent.data.student.id;
-      setStudent(resStudent.data.student);
+      if (!isBackground) setLoading(true);
 
-      const resGrades = await api.get(`/grades/student/${studentId}`, {
+      let currentStudent = student;
+      if (!currentStudent) {
+        try {
+          const cachedStudent = localStorage.getItem('parent_student_cache');
+          if (cachedStudent) {
+            currentStudent = JSON.parse(cachedStudent);
+            setStudent(currentStudent);
+          }
+        } catch (e) {}
+      }
+
+      if (!currentStudent) {
+        const resStudent = await api.get('/student');
+        currentStudent = resStudent.data.student;
+        setStudent(currentStudent);
+        try {
+          localStorage.setItem('parent_student_cache', JSON.stringify(currentStudent));
+        } catch (e) {}
+      }
+
+      const resGrades = await api.get(`/grades/student/${currentStudent.id}`, {
         params: { semester: semesterFilter },
       });
       setGrades(resGrades.data.grades);
       setAverage(resGrades.data.average);
+
+      try {
+        localStorage.setItem(`parent_grades_${semesterFilter}_cache`, JSON.stringify(resGrades.data));
+      } catch (e) {}
     } catch (err) {
       console.error(err);
     } finally {

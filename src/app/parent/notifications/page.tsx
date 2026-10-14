@@ -51,9 +51,9 @@ export default function ParentNotificationsPage() {
   const [filter, setFilter] = useState<FilterOption>('ALL');
   const router = useRouter();
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground) setLoading(true);
       const res = await api.get(`/notifications?limit=50&filter=${filter}`);
       setNotifications(res.data.notifications || []);
       if (res.data.counts) {
@@ -66,6 +66,12 @@ export default function ParentNotificationsPage() {
           important: notifs.filter((n: any) => n.isImportant).length,
         });
       }
+
+      if (filter === 'ALL') {
+        try {
+          localStorage.setItem('parent_notifs_cache', JSON.stringify(res.data));
+        } catch (e) {}
+      }
     } catch (error) {
       console.error('Gagal memuat notifikasi:', error);
     } finally {
@@ -74,7 +80,20 @@ export default function ParentNotificationsPage() {
   };
 
   useEffect(() => {
-    fetchNotifications();
+    if (filter === 'ALL') {
+      try {
+        const cached = localStorage.getItem('parent_notifs_cache');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          setNotifications(parsed.notifications || []);
+          if (parsed.counts) setCounts(parsed.counts);
+          setLoading(false);
+          fetchNotifications(true);
+          return;
+        }
+      } catch (e) {}
+    }
+    fetchNotifications(false);
   }, [filter]);
 
   const handleMarkAllRead = async () => {
@@ -233,7 +252,7 @@ export default function ParentNotificationsPage() {
 
             <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
               <button
-                onClick={fetchNotifications}
+                onClick={() => fetchNotifications(false)}
                 disabled={loading}
                 className="p-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl text-xs font-bold transition-all backdrop-blur-md shrink-0 flex items-center gap-1.5"
                 title="Segarkan Notifikasi"

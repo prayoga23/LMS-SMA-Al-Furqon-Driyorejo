@@ -13,7 +13,9 @@ export interface JwtPayload {
 }
 
 export function signToken(payload: JwtPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+  // Akun orang tua (parent) dan mobile app tidak boleh otomatis ke-logout: berlaku 10 tahun (3650d)
+  const expiresIn = payload.role === 'parent' ? '3650d' : '60d';
+  return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 
 export function verifyToken(token: string): JwtPayload | null {

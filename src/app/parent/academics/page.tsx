@@ -23,14 +23,27 @@ export default function ParentAcademicsPage() {
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchAcademicInfo();
+    try {
+      const cached = localStorage.getItem('parent_academics_cache');
+      if (cached) {
+        setData(JSON.parse(cached));
+        setLoading(false);
+        fetchAcademicInfo(true);
+        return;
+      }
+    } catch (e) {}
+
+    fetchAcademicInfo(false);
   }, []);
 
-  const fetchAcademicInfo = async () => {
+  const fetchAcademicInfo = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground) setLoading(true);
       const res = await api.get('/academic');
       setData(res.data);
+      try {
+        localStorage.setItem('parent_academics_cache', JSON.stringify(res.data));
+      } catch (e) {}
     } catch (err) {
       console.error(err);
     } finally {

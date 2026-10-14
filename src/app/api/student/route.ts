@@ -8,41 +8,56 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: 'Unauthenticated' }, { status: 401 });
   }
 
-  // 1. Cari atau buat record parent untuk user ini
-  let parent = await prisma.parents.findFirst({
-    where: { userId: auth.id },
-  });
-
-  if (!parent && (auth.role === 'parent' || auth.role === 'admin')) {
-    const user = await prisma.user.findUnique({ where: { id: auth.id } });
-    if (user) {
-      parent = await prisma.parents.create({
-        data: {
-          userId: auth.id,
-          phone: '081234567890',
-        },
-      });
-    }
-  }
-
-  if (!parent) {
-    return NextResponse.json({ message: 'Data orang tua tidak ditemukan.' }, { status: 404 });
-  }
-
-  // 2. Cari siswa yang terikat dengan parent ini
+  // 1. Coba cari langsung data siswa terikat dengan user orang tua ini (1 query cepat, lean fields)
   let student = await prisma.student.findFirst({
-    where: { parentId: parent.id },
+    where: { parent: { userId: auth.id } },
     include: {
       parent: { include: { user: true } },
-      payments: { orderBy: { createdAt: 'desc' } },
-      attendance: { orderBy: { date: 'desc' } },
-      grades: true,
-      allowances: { orderBy: { date: 'desc' } },
+      payments: {
+        select: { id: true, status: true, amount: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+      },
+      attendance: {
+        select: { status: true },
+        take: 100,
+      },
+      grades: {
+        select: { score: true },
+      },
     },
   });
 
-  // 3. AUTO-HEAL: Jika belum ada siswa terikat dengan parent ini
+  let parent = student?.parent || null;
+
+  // 2. Jika belum ditemukan (misal akun baru), baru lakukan pencarian parent / auto-heal
   if (!student) {
+    parent = await prisma.parents.findFirst({
+      where: { userId: auth.id },
+      include: { user: true },
+    });
+
+    if (!parent && (auth.role === 'parent' || auth.role === 'admin')) {
+      const user = await prisma.user.findUnique({ where: { id: auth.id } });
+      if (user) {
+        parent = await prisma.parents.create({
+          data: {
+            userId: auth.id,
+            phone: '081234567890',
+          },
+          include: { user: true },
+        });
+      }
+    }
+
+    if (!parent) {
+      return NextResponse.json({ message: 'Data orang tua tidak ditemukan.' }, { status: 404 });
+    }
+  }
+
+  // 3. AUTO-HEAL: Jika belum ada siswa terikat dengan parent ini
+  if (!student && parent) {
+    const parentRecord = parent;
     // A. Cari siswa pertama yang belum memiliki parent, atau siswa mana saja di database
     const existingStudent = await prisma.student.findFirst();
 
@@ -50,13 +65,13 @@ export async function GET(req: NextRequest) {
       // Bind siswa ini ke parent sekarang
       await prisma.student.update({
         where: { id: existingStudent.id },
-        data: { parentId: parent.id },
+        data: { parentId: parentRecord.id },
       });
     } else {
       // B. Jika database siswa benar-benar 0, buat sampel siswa otomatis
       const newStudent = await prisma.student.create({
         data: {
-          parentId: parent.id,
+          parentId: parentRecord.id,
           nis: '20241001',
           name: 'Sultan Syahrir',
           class: 'X IPA 1',
@@ -128,15 +143,23 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Re-fetch student lengkap
+    // Re-fetch student dengan lean fields
     student = await prisma.student.findFirst({
-      where: { parentId: parent.id },
+      where: { parentId: parentRecord.id },
       include: {
         parent: { include: { user: true } },
-        payments: { orderBy: { createdAt: 'desc' } },
-        attendance: { orderBy: { date: 'desc' } },
-        grades: true,
-        allowances: { orderBy: { date: 'desc' } },
+        payments: {
+          select: { id: true, status: true, amount: true, createdAt: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+        attendance: {
+          select: { status: true },
+          take: 100,
+        },
+        grades: {
+          select: { score: true },
+        },
       },
     });
   }

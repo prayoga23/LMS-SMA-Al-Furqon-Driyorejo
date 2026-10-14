@@ -58,21 +58,78 @@ export default function ParentPaymentsPage() {
   const [receiptData, setReceiptData] = useState<any | null>(null);
 
   useEffect(() => {
-    fetchPayments();
+    try {
+      const cachedStudent = localStorage.getItem('parent_student_cache');
+      const cachedPay = localStorage.getItem('parent_payments_cache');
+      if (cachedStudent) {
+        setStudent(JSON.parse(cachedStudent));
+      }
+      if (cachedPay) {
+        const parsed = JSON.parse(cachedPay);
+        setPayments(parsed.payments || []);
+        setTotalPaid(parsed.total_paid || 0);
+        setTotalUnpaid(parsed.total_unpaid || 0);
+        setBreakdown(parsed.breakdown || null);
+        setLoading(false);
+        fetchPayments(true);
+        return;
+      }
+    } catch (e) {}
+
+    fetchPayments(false);
   }, []);
 
-  const fetchPayments = async () => {
+  const fetchPayments = async (isBackground = false) => {
     try {
-      setLoading(true);
-      const resStudent = await api.get('/student');
-      const studentId = resStudent.data.student.id;
-      setStudent(resStudent.data.student);
+      if (!isBackground) setLoading(true);
 
-      const resPayment = await api.get(`/payment/student/${studentId}`);
-      setPayments(resPayment.data.payments);
-      setTotalPaid(resPayment.data.total_paid);
-      setTotalUnpaid(resPayment.data.total_unpaid);
-      setBreakdown(resPayment.data.breakdown);
+      let studentId: number | null = null;
+      try {
+        const cachedStudent = localStorage.getItem('parent_student_cache');
+        if (cachedStudent) {
+          const parsed = JSON.parse(cachedStudent);
+          studentId = parsed.id;
+          setStudent(parsed);
+        }
+      } catch (e) {}
+
+      if (studentId) {
+        const [resStudent, resPayment] = await Promise.all([
+          api.get('/student'),
+          api.get(`/payment/student/${studentId}`),
+        ]);
+        if (resStudent.data?.student) {
+          setStudent(resStudent.data.student);
+          try {
+            localStorage.setItem('parent_student_cache', JSON.stringify(resStudent.data.student));
+          } catch (e) {}
+        }
+        setPayments(resPayment.data.payments);
+        setTotalPaid(resPayment.data.total_paid);
+        setTotalUnpaid(resPayment.data.total_unpaid);
+        setBreakdown(resPayment.data.breakdown);
+
+        try {
+          localStorage.setItem('parent_payments_cache', JSON.stringify(resPayment.data));
+        } catch (e) {}
+      } else {
+        const resStudent = await api.get('/student');
+        const sid = resStudent.data.student.id;
+        setStudent(resStudent.data.student);
+        try {
+          localStorage.setItem('parent_student_cache', JSON.stringify(resStudent.data.student));
+        } catch (e) {}
+
+        const resPayment = await api.get(`/payment/student/${sid}`);
+        setPayments(resPayment.data.payments);
+        setTotalPaid(resPayment.data.total_paid);
+        setTotalUnpaid(resPayment.data.total_unpaid);
+        setBreakdown(resPayment.data.breakdown);
+
+        try {
+          localStorage.setItem('parent_payments_cache', JSON.stringify(resPayment.data));
+        } catch (e) {}
+      }
     } catch (err) {
       console.error(err);
     } finally {

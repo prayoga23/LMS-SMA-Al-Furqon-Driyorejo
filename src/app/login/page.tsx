@@ -63,8 +63,19 @@ export default function LoginPage() {
   const [successMsg, setSuccessMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login, registerParent } = useAuth();
+  const { user, loading, login, registerParent } = useAuth();
   const router = useRouter();
+
+  // Jika user sudah login sebelumnya, langsung arahkan ke dashboard masing-masing agar tidak pernah diminta login ulang
+  useEffect(() => {
+    if (!loading && user) {
+      if (['admin', 'guru', 'staff'].includes(user.role)) {
+        router.replace('/admin/dashboard');
+      } else {
+        router.replace('/parent/dashboard');
+      }
+    }
+  }, [user, loading, router]);
 
   // Search students from public endpoint
   useEffect(() => {
