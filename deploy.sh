@@ -7,13 +7,24 @@ echo "📥 Fetching latest code from Git..."
 git pull origin main
 
 echo "🔑 Ensuring .env configuration for MySQL..."
-if [ ! -f .env ] || grep -q "postgresql://" .env 2>/dev/null; then
+if [ -f .env ]; then
+  if grep -q "^DATABASE_URL=" .env; then
+    if ! grep -q "mysql://prayoga" .env; then
+      sed -i.bak 's|^DATABASE_URL=.*|DATABASE_URL="mysql://prayoga:Pr4y0g%40@mysql-server:3306/lms_sma_al_furqon"|' .env 2>/dev/null || sed -i '' 's|^DATABASE_URL=.*|DATABASE_URL="mysql://prayoga:Pr4y0g%40@mysql-server:3306/lms_sma_al_furqon"|' .env
+      rm -f .env.bak
+      echo "✅ Updated DATABASE_URL to MySQL in .env"
+    fi
+  else
+    echo 'DATABASE_URL="mysql://prayoga:Pr4y0g%40@mysql-server:3306/lms_sma_al_furqon"' >> .env
+    echo "✅ Added DATABASE_URL to .env"
+  fi
+else
   cat << 'EOF' > .env
-DATABASE_URL="mysql://root:@localhost:3306/lms_sma_al_furqon"
+DATABASE_URL="mysql://prayoga:Pr4y0g%40@mysql-server:3306/lms_sma_al_furqon"
 JWT_SECRET="sekolah-secret-key-2025"
 NEXT_PUBLIC_API_URL="/api"
 EOF
-  echo "✅ Updated .env with MySQL DATABASE_URL"
+  echo "✅ Created .env with MySQL DATABASE_URL"
 fi
 
 echo "🔨 Building Docker images..."

@@ -8,8 +8,8 @@ const getDatabaseUrl = (): string => {
     return envUrl;
   }
 
-  // Fallback for MySQL local (e.g. XAMPP/Laragon/local MySQL default)
-  return envUrl || 'mysql://root:@localhost:3306/lms_sma_al_furqon';
+  // Fallback for MySQL server if env is empty or still points to old PostgreSQL/invalid protocol
+  return 'mysql://prayoga:Pr4y0g%40@mysql-server:3306/lms_sma_al_furqon';
 };
 
 const globalForPrisma = globalThis as unknown as {
