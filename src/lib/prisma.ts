@@ -1,42 +1,15 @@
 import { PrismaClient } from '@prisma/client';
-import path from 'path';
 
 const getDatabaseUrl = (): string => {
-  let envUrl = (process.env.DATABASE_URL || '').trim();
+  const envUrl = (process.env.DATABASE_URL || '').trim();
 
-  // If empty or missing, fallback to default absolute path
-  if (!envUrl) {
-    return `file:${path.resolve(process.cwd(), 'prisma', 'dev.db')}`;
-  }
-
-  // If remote database connection string (Postgres, MySQL, etc.)
-  if (
-    envUrl.startsWith('postgresql://') ||
-    envUrl.startsWith('postgres://') ||
-    envUrl.startsWith('mysql://') ||
-    envUrl.startsWith('mongodb://')
-  ) {
+  // If valid MySQL URL provided in .env
+  if (envUrl.startsWith('mysql://')) {
     return envUrl;
   }
 
-  // Ensure 'file:' prefix is present for SQLite
-  if (!envUrl.startsWith('file:')) {
-    envUrl = `file:${envUrl}`;
-  }
-
-  const filePath = envUrl.replace(/^file:/, '');
-
-  // If absolute path (e.g. file:/app/prisma/dev.db or file:/tmp/dev.db)
-  if (path.isAbsolute(filePath)) {
-    return `file:${filePath}`;
-  }
-
-  // If relative path (e.g. file:./prisma/dev.db or file:dev.db)
-  const cleanPath = filePath.replace(/^\.\//, '');
-  if (cleanPath.startsWith('prisma/')) {
-    return `file:${path.resolve(/*turbopackIgnore: true*/ process.cwd(), cleanPath)}`;
-  }
-  return `file:${path.resolve(/*turbopackIgnore: true*/ process.cwd(), 'prisma', cleanPath)}`;
+  // Fallback for MySQL local (e.g. XAMPP/Laragon/local MySQL default)
+  return envUrl || 'mysql://root:@localhost:3306/lms_sma_al_furqon';
 };
 
 const globalForPrisma = globalThis as unknown as {
