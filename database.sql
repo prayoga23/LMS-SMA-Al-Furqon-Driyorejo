@@ -265,6 +265,21 @@ CREATE TABLE `notification_recipients` (
   CONSTRAINT `notification_recipients_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 14. Tabel: school_structures
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `school_structures`;
+CREATE TABLE `school_structures` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `position` varchar(191) NOT NULL,
+  `name` varchar(191) NOT NULL,
+  `academicYear` varchar(191) NOT NULL DEFAULT '2026/2027',
+  `orderNumber` int(11) NOT NULL DEFAULT 1,
+  `createdAt` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updatedAt` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- ========================================================
 -- DATA AWAL (SEED & EXISTING DATA)
@@ -277,6 +292,22 @@ INSERT INTO `User` (`id`, `name`, `email`, `password`, `role`, `createdAt`, `upd
 INSERT INTO `User` (`id`, `name`, `email`, `password`, `role`, `createdAt`, `updatedAt`) VALUES (112, 'Budi Santoso', 'orangtua@sekolah.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'parent', '2026-08-25 11:51:03', '2026-08-25 11:51:03');
 INSERT INTO `User` (`id`, `name`, `email`, `password`, `role`, `createdAt`, `updatedAt`) VALUES (113, 'Siti Aminah', 'orangtua2@sekolah.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'parent', '2026-08-25 11:51:03', '2026-08-25 11:51:03');
 INSERT INTO `User` (`id`, `name`, `email`, `password`, `role`, `createdAt`, `updatedAt`) VALUES (114, 'Hendra Pratama', 'orangtua3@sekolah.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'parent', '2026-08-25 11:51:03', '2026-08-25 11:51:03');
+-- Akun Login Guru & Pimpinan Sekolah (Struktur Organisasi TP 2026/2027)
+INSERT INTO `User` (`id`, `name`, `email`, `password`, `role`, `createdAt`, `updatedAt`) VALUES 
+(120, 'KH. Mashuri Abdurrohim', 'kh.mashuri@alfurqon.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'admin', '2026-08-25 11:51:03', '2026-08-25 11:51:03'),
+(121, 'Ny. Hj. Dian Puspasari Mashuri', 'dian.puspasari@alfurqon.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'admin', '2026-08-25 11:51:03', '2026-08-25 11:51:03'),
+(122, 'Gus Reva Mashuri, M.Pd.', 'gus.reva@alfurqon.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'admin', '2026-08-25 11:51:03', '2026-08-25 11:51:03'),
+(123, 'Suryanto, S.Pd., M.Pd.', 'suryanto@sekolah.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'guru', '2026-08-25 11:51:03', '2026-08-25 11:51:03'),
+(124, 'Siti Alfiyatus Sa\'diyah, S.Pd.', 'siti.alfiyatus@sekolah.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'staff', '2026-08-25 11:51:03', '2026-08-25 11:51:03'),
+(125, 'Triana Dewitasari, S.Pd.', 'triana.dewitasari@sekolah.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'guru', '2026-08-25 11:51:03', '2026-08-25 11:51:03'),
+(126, 'Suherman, S.Pd., M.Pd.', 'suherman@sekolah.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'guru', '2026-08-25 11:51:03', '2026-08-25 11:51:03'),
+(127, 'Masyhudan, ST.', 'masyhudan@sekolah.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'guru', '2026-08-25 11:51:03', '2026-08-25 11:51:03'),
+(128, 'Fita Islmiah, S.Pd.', 'fita.islmiah@sekolah.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'guru', '2026-08-25 11:51:03', '2026-08-25 11:51:03'),
+(129, 'Khoirum Umala, S.Pd.', 'khoirum.umala@sekolah.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'guru', '2026-08-25 11:51:03', '2026-08-25 11:51:03'),
+(130, 'Sugeng Utomo, S.Pd.', 'sugeng.utomo@sekolah.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'guru', '2026-08-25 11:51:03', '2026-08-25 11:51:03'),
+(131, 'Dian Purwanti, S.Pd.', 'dian.purwanti@sekolah.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'guru', '2026-08-25 11:51:03', '2026-08-25 11:51:03'),
+(132, 'Nurul Idhomah, S.Pd.', 'nurul.idhomah@sekolah.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'guru', '2026-08-25 11:51:03', '2026-08-25 11:51:03'),
+(133, 'M. Mas\'ud Yunus, S.Pd.', 'masud.yunus@sekolah.sch.id', '$2b$10$9bFJd/zvMVcwBzcBQ3lSY.Ml3aOR58U5kW5opdd1b.m/oGA.JVTj6', 'guru', '2026-08-25 11:51:03', '2026-08-25 11:51:03');
 
 -- Data Tabel: parents
 INSERT INTO `parents` (`id`, `userId`, `phone`, `createdAt`, `updatedAt`) VALUES (55, 112, '081234567890', '2026-08-25 11:51:03', '2026-08-25 11:51:03');
@@ -293,12 +324,41 @@ INSERT INTO `teachers` (`id`, `nip`, `name`, `subject`, `phone`, `email`, `statu
 INSERT INTO `teachers` (`id`, `nip`, `name`, `subject`, `phone`, `email`, `status`, `createdAt`, `updatedAt`) VALUES (74, '198503202010012005', 'Siti Nurhaliza, S.ST, M.T', 'Pemrograman Web & Perangkat Bergerak', '081398765432', 'siti.nurhaliza@sekolah.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04');
 INSERT INTO `teachers` (`id`, `nip`, `name`, `subject`, `phone`, `email`, `status`, `createdAt`, `updatedAt`) VALUES (75, '199011152018011003', 'Bambang Supriyadi, S.Kom', 'Teknik Komputer & Jaringan', '085712344321', 'bambang.s@sekolah.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04');
 INSERT INTO `teachers` (`id`, `nip`, `name`, `subject`, `phone`, `email`, `status`, `createdAt`, `updatedAt`) VALUES (76, '199208042020022008', 'Rina Kartika, S.Pd', 'Bahasa Inggris Industri', '082155443322', 'rina.k@sekolah.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04');
+-- Data Guru & Pimpinan SMA Al-Furqon Driyorejo (Struktur Organisasi TP 2026/2027)
+INSERT INTO `teachers` (`id`, `nip`, `name`, `subject`, `phone`, `email`, `status`, `createdAt`, `updatedAt`) VALUES 
+(81, '196003151985031001', 'KH. Mashuri Abdurrohim', 'Pendiri - Pengasuh PP. Al-Furqon', '081230010001', 'kh.mashuri@alfurqon.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(82, '196508201990032001', 'Ny. Hj. Dian Puspasari Mashuri', 'Wakil Pengasuh PP. Al-Furqon', '081230010002', 'dian.puspasari@alfurqon.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(83, '198604122011011001', 'Gus Reva Mashuri, M.Pd.', 'Ketua Yayasan PP. Al-Furqon', '081230010003', 'gus.reva@alfurqon.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(84, '197509182000121002', 'Suryanto, S.Pd., M.Pd.', 'Kepala Sekolah', '081234567001', 'suryanto@sekolah.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(85, '198206142006042003', 'Siti Alfiyatus Sa\'diyah, S.Pd.', 'Kepala TU / Bendahara SMA Al-Furqon', '081234567002', 'siti.alfiyatus@sekolah.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(86, '198411052009022004', 'Triana Dewitasari, S.Pd.', 'Waka Kurikulum / Wali Kelas XII-3', '081234567003', 'triana.dewitasari@sekolah.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(87, '198007222005011005', 'Suherman, S.Pd., M.Pd.', 'Waka Kesiswaan SMA Al-Furqon', '081234567004', 'suherman@sekolah.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(88, '198302192010011006', 'Masyhudan, ST.', 'Waka Humas SMA Al-Furqon', '081234567005', 'masyhudan@sekolah.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(89, '198810282014032007', 'Fita Islmiah, S.Pd.', 'Waka Bina Prestasi / Wali Kelas XII-1', '081234567006', 'fita.islmiah@sekolah.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(90, '199105152018012008', 'Khoirum Umala, S.Pd.', 'Wali Kelas X-1', '081234567007', 'khoirum.umala@sekolah.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(91, '198903102015021009', 'Sugeng Utomo, S.Pd.', 'Wali Kelas X-2', '081234567008', 'sugeng.utomo@sekolah.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(92, '199008242016042010', 'Dian Purwanti, S.Pd.', 'Wali Kelas XI-1', '081234567009', 'dian.purwanti@sekolah.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(93, '199212032019032011', 'Nurul Idhomah, S.Pd.', 'Wali Kelas XI-2', '081234567010', 'nurul.idhomah@sekolah.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(94, '198709142012011012', 'M. Mas\'ud Yunus, S.Pd.', 'Wali Kelas XII-2', '081234567011', 'masud.yunus@sekolah.sch.id', 'Aktif', '2026-08-25 11:51:04', '2026-08-25 11:51:04');
 
 -- Data Tabel: teacher_attendances
 INSERT INTO `teacher_attendances` (`id`, `teacherId`, `date`, `status`, `notes`, `createdAt`, `updatedAt`) VALUES (361, 73, '2026-08-25', 'Hadir', 'Mengajar jam ke 1-4', '2026-08-25 11:51:04', '2026-08-25 11:51:04');
 INSERT INTO `teacher_attendances` (`id`, `teacherId`, `date`, `status`, `notes`, `createdAt`, `updatedAt`) VALUES (362, 74, '2026-08-25', 'Hadir', 'Mengajar jam ke 3-6', '2026-08-25 11:51:04', '2026-08-25 11:51:04');
 INSERT INTO `teacher_attendances` (`id`, `teacherId`, `date`, `status`, `notes`, `createdAt`, `updatedAt`) VALUES (363, 75, '2026-08-25', 'Hadir', 'Praktikum Lab TKJ', '2026-08-25 11:51:04', '2026-08-25 11:51:04');
 INSERT INTO `teacher_attendances` (`id`, `teacherId`, `date`, `status`, `notes`, `createdAt`, `updatedAt`) VALUES (364, 76, '2026-08-25', 'Hadir', 'Mengajar Bahasa Inggris', '2026-08-25 11:51:04', '2026-08-25 11:51:04');
+-- Presensi Tambahan Guru/Pimpinan untuk Tanggal 2026-08-25
+INSERT INTO `teacher_attendances` (`id`, `teacherId`, `date`, `status`, `notes`, `createdAt`, `updatedAt`) VALUES 
+(381, 84, '2026-08-25', 'Hadir', 'Hadir tepat waktu - Memimpin Rapat Koordinasi', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(382, 85, '2026-08-25', 'Hadir', 'Pelayanan Administrasi & Keuangan TU', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(383, 86, '2026-08-25', 'Hadir', 'Supervisi Kurikulum & Mengajar Kelas XII-3', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(384, 87, '2026-08-25', 'Hadir', 'Pembinaan Kedisiplinan Siswa', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(385, 88, '2026-08-25', 'Hadir', 'Koordinasi Kemitraan Humas', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(386, 89, '2026-08-25', 'Hadir', 'Pembinaan Prestasi & Mengajar Kelas XII-1', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(387, 90, '2026-08-25', 'Hadir', 'Mengajar & Pendampingan Kelas X-1', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(388, 91, '2026-08-25', 'Hadir', 'Mengajar & Pendampingan Kelas X-2', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(389, 92, '2026-08-25', 'Hadir', 'Mengajar & Pendampingan Kelas XI-1', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(390, 93, '2026-08-25', 'Hadir', 'Mengajar & Pendampingan Kelas XI-2', '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(391, 94, '2026-08-25', 'Hadir', 'Mengajar & Pendampingan Kelas XII-2', '2026-08-25 11:51:04', '2026-08-25 11:51:04');
 INSERT INTO `teacher_attendances` (`id`, `teacherId`, `date`, `status`, `notes`, `createdAt`, `updatedAt`) VALUES (365, 73, '2026-08-24', 'Hadir', 'Mengajar jam ke 1-4', '2026-08-25 11:51:04', '2026-08-25 11:51:04');
 INSERT INTO `teacher_attendances` (`id`, `teacherId`, `date`, `status`, `notes`, `createdAt`, `updatedAt`) VALUES (366, 74, '2026-08-24', 'Hadir', 'Mengajar jam ke 3-6', '2026-08-25 11:51:04', '2026-08-25 11:51:04');
 INSERT INTO `teacher_attendances` (`id`, `teacherId`, `date`, `status`, `notes`, `createdAt`, `updatedAt`) VALUES (367, 75, '2026-08-24', 'Hadir', 'Praktikum Lab TKJ', '2026-08-25 11:51:04', '2026-08-25 11:51:04');
@@ -409,6 +469,27 @@ INSERT INTO `notification_recipients` (`id`, `notificationId`, `userId`, `status
 (2, 2, 112, 'PENDING', NOW(), NULL),
 (3, 3, 112, 'PENDING', NOW(), NULL),
 (4, 4, 112, 'PENDING', NOW(), NULL);
+
+-- --------------------------------------------------------
+-- Data Tabel: school_structures (Struktur Organisasi Sekolah TP 2026/2027)
+-- --------------------------------------------------------
+INSERT INTO `school_structures` (`id`, `position`, `name`, `academicYear`, `orderNumber`, `createdAt`, `updatedAt`) VALUES 
+(1, 'Pendiri - Pengasuh PP. Al. Furqon', 'KH. Mashuri Abdurrohim', '2026/2027', 1, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(2, 'Wakil Pengasuh PP. Al Furqon', 'Ny. Hj. Dian Puspasari Mashuri', '2026/2027', 2, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(3, 'Ketua Yayasan PP. Al Furqon', 'Gus Reva Mashuri, M.Pd.', '2026/2027', 3, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(4, 'Kepala Sekolah', 'Suryanto, S.Pd., M.Pd.', '2026/2027', 4, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(5, 'Kepala TU/ Bendahara SMA Al Furqon', 'Siti Alfiyatus Sa\'diyah, S.Pd.', '2026/2027', 5, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(6, 'Waka Kurikulum SMA Al Furqon', 'Triana Dewitasari, S.Pd.', '2026/2027', 6, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(7, 'Waka Kesiswaan SMA Al furqon', 'Suherman, S.Pd., M.Pd.', '2026/2027', 7, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(8, 'Waka Humas SMA A Furqon', 'Masyhudan, ST.', '2026/2027', 8, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(9, 'Waka Bina Prestasi SMA AL Furqon', 'Fita Islmiah, S.Pd.', '2026/2027', 9, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(10, 'Wali Kelas X-1', 'Khoirum Umala, S.Pd.', '2026/2027', 10, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(11, 'Wai Kelas X-2', 'Sugeng Utomo, S.Pd.', '2026/2027', 11, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(12, 'Wali Kelas XI-1', 'Dian Purwanti, S.Pd.', '2026/2027', 12, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(13, 'Wali Kelas XI-2', 'Nurul Idhomah, S.Pd.', '2026/2027', 13, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(14, 'Wali Kelas XII-1', 'Fita Islmiah, S.Pd.', '2026/2027', 14, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(15, 'Wali Kelas XII-2', 'M. Mas\'ud Yunus, S.Pd.', '2026/2027', 15, '2026-08-25 11:51:04', '2026-08-25 11:51:04'),
+(16, 'Wali Kelas XII-3', 'Triana Dewitasari, S.Pd.', '2026/2027', 16, '2026-08-25 11:51:04', '2026-08-25 11:51:04');
 
 
 SET FOREIGN_KEY_CHECKS = 1;

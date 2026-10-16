@@ -111,7 +111,10 @@ export const NotificationManager: React.FC = () => {
     <>
       {/* Foreground Push Toast Popup */}
       {toast && (
-        <div className="fixed top-5 right-5 z-50 max-w-sm w-full bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-emerald-500/30 animate-in fade-in slide-in-from-top-4 duration-300 flex items-start gap-3">
+        <div
+          className="fixed top-5 right-5 z-50 max-w-sm w-full bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-emerald-500/30 animate-fade-in flex items-start gap-3"
+          style={{ backgroundColor: '#0f172a' }}
+        >
           <div className="p-2.5 rounded-xl bg-emerald-600 text-white shrink-0">
             <Bell className="w-5 h-5" />
           </div>
@@ -138,7 +141,10 @@ export const NotificationManager: React.FC = () => {
 
       {/* Soft Permission Request Banner */}
       {showPrompt && (
-        <div className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 max-w-sm w-full bg-white p-4 rounded-2xl shadow-xl border border-emerald-100 animate-in fade-in slide-in-from-bottom-4">
+        <div
+          className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 max-w-sm w-full bg-white p-4 rounded-2xl shadow-xl border border-emerald-100 animate-fade-in"
+          style={{ backgroundColor: '#ffffff' }}
+        >
           <div className="flex items-start gap-3">
             <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-800 shrink-0">
               <Bell className="w-5 h-5" />

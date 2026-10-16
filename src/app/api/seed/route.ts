@@ -36,8 +36,26 @@ async function handleSeed() {
       },
     });
 
-    // 2. Guru User
-    const guruUser = await prisma.user.create({
+    // 2. Guru & Pimpinan Sekolah (Struktur Organisasi TP 2026/2027)
+    const officialTeachers = [
+      { nip: '196003151985031001', name: 'KH. Mashuri Abdurrohim', subject: 'Pendiri - Pengasuh PP. Al-Furqon', email: 'kh.mashuri@alfurqon.sch.id', phone: '081230010001', role: 'admin' },
+      { nip: '196508201990032001', name: 'Ny. Hj. Dian Puspasari Mashuri', subject: 'Wakil Pengasuh PP. Al-Furqon', email: 'dian.puspasari@alfurqon.sch.id', phone: '081230010002', role: 'admin' },
+      { nip: '198604122011011001', name: 'Gus Reva Mashuri, M.Pd.', subject: 'Ketua Yayasan PP. Al-Furqon', email: 'gus.reva@alfurqon.sch.id', phone: '081230010003', role: 'admin' },
+      { nip: '197509182000121002', name: 'Suryanto, S.Pd., M.Pd.', subject: 'Kepala Sekolah', email: 'suryanto@sekolah.sch.id', phone: '081234567001', role: 'guru' },
+      { nip: '198206142006042003', name: 'Siti Alfiyatus Sa\'diyah, S.Pd.', subject: 'Kepala TU / Bendahara SMA Al-Furqon', email: 'siti.alfiyatus@sekolah.sch.id', phone: '081234567002', role: 'staff' },
+      { nip: '198411052009022004', name: 'Triana Dewitasari, S.Pd.', subject: 'Waka Kurikulum / Wali Kelas XII-3', email: 'triana.dewitasari@sekolah.sch.id', phone: '081234567003', role: 'guru' },
+      { nip: '198007222005011005', name: 'Suherman, S.Pd., M.Pd.', subject: 'Waka Kesiswaan SMA Al-Furqon', email: 'suherman@sekolah.sch.id', phone: '081234567004', role: 'guru' },
+      { nip: '198302192010011006', name: 'Masyhudan, ST.', subject: 'Waka Humas SMA Al-Furqon', email: 'masyhudan@sekolah.sch.id', phone: '081234567005', role: 'guru' },
+      { nip: '198810282014032007', name: 'Fita Islmiah, S.Pd.', subject: 'Waka Bina Prestasi / Wali Kelas XII-1', email: 'fita.islmiah@sekolah.sch.id', phone: '081234567006', role: 'guru' },
+      { nip: '199105152018012008', name: 'Khoirum Umala, S.Pd.', subject: 'Wali Kelas X-1', email: 'khoirum.umala@sekolah.sch.id', phone: '081234567007', role: 'guru' },
+      { nip: '198903102015021009', name: 'Sugeng Utomo, S.Pd.', subject: 'Wali Kelas X-2', email: 'sugeng.utomo@sekolah.sch.id', phone: '081234567008', role: 'guru' },
+      { nip: '199008242016042010', name: 'Dian Purwanti, S.Pd.', subject: 'Wali Kelas XI-1', email: 'dian.purwanti@sekolah.sch.id', phone: '081234567009', role: 'guru' },
+      { nip: '199212032019032011', name: 'Nurul Idhomah, S.Pd.', subject: 'Wali Kelas XI-2', email: 'nurul.idhomah@sekolah.sch.id', phone: '081234567010', role: 'guru' },
+      { nip: '198709142012011012', name: 'M. Mas\'ud Yunus, S.Pd.', subject: 'Wali Kelas XII-2', email: 'masud.yunus@sekolah.sch.id', phone: '081234567011', role: 'guru' },
+    ];
+
+    // Akun demo guru umum
+    await prisma.user.create({
       data: {
         name: 'Drs. H. Ahmad Wijaya, M.Pd',
         email: 'guru@sekolah.sch.id',
@@ -46,17 +64,48 @@ async function handleSeed() {
       },
     });
 
-    // Create Teacher Profile for Guru User
     await prisma.teacher.create({
       data: {
-        nip: 'GURU-0001',
-        name: guruUser.name,
-        email: guruUser.email,
-        subject: 'Kimia',
-        phone: '081299887766',
+        nip: '197805122005011002',
+        name: 'Drs. H. Ahmad Wijaya, M.Pd',
+        email: 'guru@sekolah.sch.id',
+        subject: 'Matematika Terapan',
+        phone: '081234567891',
         status: 'Aktif',
       },
     });
+
+    for (const item of officialTeachers) {
+      await prisma.user.create({
+        data: {
+          name: item.name,
+          email: item.email,
+          password: defaultPassword,
+          role: item.role,
+        },
+      });
+
+      const teacher = await prisma.teacher.create({
+        data: {
+          nip: item.nip,
+          name: item.name,
+          email: item.email,
+          subject: item.subject,
+          phone: item.phone,
+          status: 'Aktif',
+        },
+      });
+
+      // Sample presensi hadir
+      await prisma.teacherAttendance.create({
+        data: {
+          teacherId: teacher.id,
+          date: new Date().toISOString().split('T')[0],
+          status: 'Hadir',
+          notes: 'Hadir tepat waktu di sekolah',
+        },
+      });
+    }
 
     // 3. Staff User
     await prisma.user.create({
