@@ -97,6 +97,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
         return { label: 'Keuangan', color: 'bg-amber-100 text-amber-800 border-amber-200' };
       case 'ANNOUNCEMENT':
         return { label: 'Pengumuman', color: 'bg-purple-100 text-purple-800 border-purple-200' };
+      case 'ACADEMIC':
+        return { label: 'Akademik', color: 'bg-teal-100 text-teal-800 border-teal-200' };
       default:
         return { label: type || 'Info', color: 'bg-slate-100 text-slate-700 border-slate-200' };
     }
@@ -106,38 +108,38 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
     <>
       {/* Header Dropdown */}
       <div
-        className="flex items-center justify-between px-4 py-3 border-b border-emerald-100 shrink-0"
-        style={{ backgroundColor: '#ecfdf5' }}
+        className="flex items-center justify-between px-4 py-3.5 border-b border-emerald-100 shrink-0 bg-white"
+        style={{ backgroundColor: '#ffffff' }}
       >
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-800">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="p-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 shrink-0">
             <Bell className="w-4 h-4 text-emerald-700" />
           </div>
-          <div>
-            <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+          <div className="min-w-0">
+            <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider truncate">
               Notifikasi Terbaru
             </h4>
-            {unreadCount > 0 ? (
-              <span className="text-[10px] text-emerald-700 font-bold">
-                {unreadCount} pesan belum dibaca
-              </span>
-            ) : (
-              <span className="text-[10px] text-slate-400 font-medium">
-                Semua notifikasi dibaca
-              </span>
-            )}
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2 shrink-0">
+          {unreadCount > 0 ? (
+            <span className="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200 shrink-0">
+              {unreadCount} Baru
+            </span>
+          ) : (
+            <span className="text-[10px] text-slate-400 font-medium shrink-0">
+              Semua dibaca
+            </span>
+          )}
+
           {unreadCount > 0 && (
             <button
               onClick={handleMarkAllRead}
-              className="px-2 py-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100/70 rounded-lg transition-colors flex items-center gap-1"
+              className="p-1.5 text-emerald-700 hover:text-emerald-900 hover:bg-emerald-50 rounded-lg transition-colors"
               title="Tandai semua telah dibaca"
             >
               <CheckCheck className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Tandai Dibaca</span>
             </button>
           )}
           <button
@@ -152,8 +154,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
 
       {/* List Notifikasi */}
       <div
-        className="p-3 space-y-2 overflow-y-auto flex-1 min-h-[220px] max-h-[58vh] sm:max-h-72 custom-scrollbar"
-        style={{ backgroundColor: '#ffffff' }}
+        className="p-3 space-y-2.5 overflow-y-auto flex-1 min-h-0 custom-scrollbar bg-white"
+        style={{ backgroundColor: '#ffffff', maxHeight: '58vh' }}
       >
         {notifications.length === 0 ? (
           <div className="py-10 text-center">
@@ -175,9 +177,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                 key={n.id}
                 href={n.url || historyLink}
                 onClick={() => handleNotificationClick(n)}
-                className={`block p-3 rounded-xl transition-all border text-left ${
+                className={`block p-3 rounded-2xl transition-all border text-left ${
                   isUnread
-                    ? 'bg-emerald-50/90 border-emerald-200 hover:bg-emerald-100/80 shadow-xs'
+                    ? 'border-emerald-200 hover:bg-emerald-100/70 shadow-2xs'
                     : 'bg-white border-slate-100 hover:bg-slate-50 hover:border-slate-200'
                 }`}
                 style={{ backgroundColor: isUnread ? '#ecfdf5' : '#ffffff' }}
@@ -190,7 +192,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                       {badge.label}
                     </span>
                     {isUnread && (
-                      <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                      <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse shrink-0" />
                     )}
                   </div>
                   <span className="text-[10px] text-slate-400 shrink-0 font-medium">
@@ -218,16 +220,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
 
       {/* Footer */}
       <div
-        className="p-2.5 border-t border-emerald-100 shrink-0"
-        style={{ backgroundColor: '#f8fafc' }}
+        className="p-3 border-t border-emerald-100 shrink-0 bg-white"
+        style={{ backgroundColor: '#ffffff' }}
       >
         <Link
           href={historyLink}
           onClick={() => setShowDropdown(false)}
-          className="w-full text-center text-xs font-bold text-emerald-800 hover:text-emerald-900 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border border-emerald-200 shadow-2xs"
-          style={{ backgroundColor: '#d1fae5' }}
+          className="w-full text-center text-xs font-bold text-emerald-800 hover:text-emerald-900 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5 border border-emerald-200 shadow-2xs"
+          style={{ backgroundColor: '#ecfdf5' }}
         >
-          Buka Semua Notifikasi <ChevronRight className="w-3.5 h-3.5" />
+          <span>Buka Semua Notifikasi</span>
+          <ChevronRight className="w-3.5 h-3.5 text-emerald-700" />
         </Link>
       </div>
     </>
@@ -282,10 +285,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                 onClick={() => setShowDropdown(false)}
               />
               <div
-                className="absolute right-0 top-full mt-2 w-96 rounded-2xl shadow-2xl border border-emerald-100 z-50 flex flex-col overflow-hidden"
+                className="absolute right-0 top-full mt-2 w-96 rounded-2xl shadow-2xl border border-emerald-100 z-50 flex flex-col overflow-hidden bg-white"
                 style={{
                   backgroundColor: '#ffffff',
-                  isolation: 'isolate',
                   boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.2)',
                 }}
               >
@@ -307,30 +309,29 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
         </div>
       </div>
 
-      {/* Mobile Modal via Portal (< sm) - 100% immune to sticky header containment and APK WebView transparency glitch */}
+      {/* Mobile Modal via Portal (< sm) */}
       {showDropdown &&
         mounted &&
         typeof document !== 'undefined' &&
         createPortal(
-          <div className="sm:hidden fixed inset-0 z-50 flex flex-col justify-start px-3.5 pt-20">
-            {/* Backdrop dengan warna solid RGBA (kompatibel penuh dengan semua versi Chromium/Android WebView) */}
+          <div className="sm:hidden fixed inset-0 z-50">
+            {/* Backdrop dengan warna redup lembut (bukan hitam pekat) */}
             <div
-              className="fixed inset-0"
-              style={{ backgroundColor: 'rgba(15, 23, 42, 0.75)' }}
+              className="fixed inset-0 transition-opacity duration-200"
+              style={{ backgroundColor: 'rgba(15, 23, 42, 0.4)' }}
               onClick={() => setShowDropdown(false)}
             />
-            {/* Modal Card dengan isolation dan background putih solid mencegah layer clipping GPU */}
-            <div
-              className="relative w-full max-h-[78vh] rounded-3xl border border-emerald-100 flex flex-col overflow-hidden z-10 shadow-2xl"
-              style={{
-                backgroundColor: '#ffffff',
-                isolation: 'isolate',
-                WebkitBackfaceVisibility: 'hidden',
-                backfaceVisibility: 'hidden',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
-              }}
-            >
-              {renderDropdownBody()}
+            {/* Modal Card container tepat di bawah header dengan jarak rapi */}
+            <div className="fixed inset-x-3.5 top-[68px] max-h-[82vh] flex flex-col z-10">
+              <div
+                className="w-full max-h-[82vh] rounded-3xl border border-emerald-200 shadow-2xl flex flex-col overflow-hidden bg-white"
+                style={{
+                  backgroundColor: '#ffffff',
+                  boxShadow: '0 20px 45px -10px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(16, 185, 129, 0.15)',
+                }}
+              >
+                {renderDropdownBody()}
+              </div>
             </div>
           </div>,
           document.body
