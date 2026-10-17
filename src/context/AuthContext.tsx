@@ -92,6 +92,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.removeItem('user');
       setToken(null);
       setUser(null);
+      if (typeof window !== 'undefined' && (window as any).AndroidBridge?.clearCache) {
+        try {
+          (window as any).AndroidBridge.clearCache();
+        } catch {
+          // ignore
+        }
+      }
     }
   };
 
