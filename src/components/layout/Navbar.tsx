@@ -105,7 +105,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
   const renderDropdownBody = () => (
     <>
       {/* Header Dropdown */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-emerald-100 bg-emerald-50/60 shrink-0">
+      <div
+        className="flex items-center justify-between px-4 py-3 border-b border-emerald-100 shrink-0"
+        style={{ backgroundColor: '#ecfdf5' }}
+      >
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-800">
             <Bell className="w-4 h-4 text-emerald-700" />
@@ -148,7 +151,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
       </div>
 
       {/* List Notifikasi */}
-      <div className="p-3 space-y-2 overflow-y-auto flex-1 min-h-[160px] max-h-[58vh] sm:max-h-72 custom-scrollbar bg-white">
+      <div
+        className="p-3 space-y-2 overflow-y-auto flex-1 min-h-[220px] max-h-[58vh] sm:max-h-72 custom-scrollbar"
+        style={{ backgroundColor: '#ffffff' }}
+      >
         {notifications.length === 0 ? (
           <div className="py-10 text-center">
             <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-2 border border-emerald-100">
@@ -174,6 +180,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                     ? 'bg-emerald-50/90 border-emerald-200 hover:bg-emerald-100/80 shadow-xs'
                     : 'bg-white border-slate-100 hover:bg-slate-50 hover:border-slate-200'
                 }`}
+                style={{ backgroundColor: isUnread ? '#ecfdf5' : '#ffffff' }}
               >
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -210,11 +217,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
       </div>
 
       {/* Footer */}
-      <div className="p-2.5 border-t border-emerald-100 bg-slate-50 shrink-0">
+      <div
+        className="p-2.5 border-t border-emerald-100 shrink-0"
+        style={{ backgroundColor: '#f8fafc' }}
+      >
         <Link
           href={historyLink}
           onClick={() => setShowDropdown(false)}
-          className="w-full text-center text-xs font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-100 hover:bg-emerald-200/80 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border border-emerald-200"
+          className="w-full text-center text-xs font-bold text-emerald-800 hover:text-emerald-900 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border border-emerald-200 shadow-2xs"
+          style={{ backgroundColor: '#d1fae5' }}
         >
           Buka Semua Notifikasi <ChevronRight className="w-3.5 h-3.5" />
         </Link>
@@ -266,12 +277,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
           {showDropdown && (
             <div className="hidden sm:block">
               <div
-                className="fixed inset-0 z-40 bg-slate-900/20"
+                className="fixed inset-0 z-40"
+                style={{ backgroundColor: 'rgba(15, 23, 42, 0.25)' }}
                 onClick={() => setShowDropdown(false)}
               />
               <div
-                className="absolute right-0 top-full mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-emerald-100 z-50 flex flex-col overflow-hidden animate-fade-in"
-                style={{ backgroundColor: '#ffffff' }}
+                className="absolute right-0 top-full mt-2 w-96 rounded-2xl shadow-2xl border border-emerald-100 z-50 flex flex-col overflow-hidden"
+                style={{
+                  backgroundColor: '#ffffff',
+                  isolation: 'isolate',
+                  boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.2)',
+                }}
               >
                 {renderDropdownBody()}
               </div>
@@ -296,14 +312,23 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
         mounted &&
         typeof document !== 'undefined' &&
         createPortal(
-          <div className="sm:hidden">
+          <div className="sm:hidden fixed inset-0 z-50 flex flex-col justify-start px-3.5 pt-20">
+            {/* Backdrop dengan warna solid RGBA (kompatibel penuh dengan semua versi Chromium/Android WebView) */}
             <div
-              className="fixed inset-0 z-50 bg-slate-950/70 animate-fade-in"
+              className="fixed inset-0"
+              style={{ backgroundColor: 'rgba(15, 23, 42, 0.75)' }}
               onClick={() => setShowDropdown(false)}
             />
+            {/* Modal Card dengan isolation dan background putih solid mencegah layer clipping GPU */}
             <div
-              className="fixed inset-x-3.5 top-16 z-50 max-h-[80vh] bg-white rounded-3xl shadow-2xl border border-emerald-100 flex flex-col overflow-hidden animate-fade-in"
-              style={{ backgroundColor: '#ffffff' }}
+              className="relative w-full max-h-[78vh] rounded-3xl border border-emerald-100 flex flex-col overflow-hidden z-10 shadow-2xl"
+              style={{
+                backgroundColor: '#ffffff',
+                isolation: 'isolate',
+                WebkitBackfaceVisibility: 'hidden',
+                backfaceVisibility: 'hidden',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+              }}
             >
               {renderDropdownBody()}
             </div>
