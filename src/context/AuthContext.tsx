@@ -30,6 +30,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<User>;
   registerParent: (data: RegisterParentData) => Promise<User>;
   logout: () => Promise<void>;
+  updateUser: (updatedUserData: Partial<User>, newToken?: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -102,8 +103,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const updateUser = (updatedUserData: Partial<User>, newToken?: string) => {
+    setUser((prev) => {
+      if (!prev) return null;
+      const merged = { ...prev, ...updatedUserData };
+      localStorage.setItem('user', JSON.stringify(merged));
+      return merged;
+    });
+    if (newToken) {
+      localStorage.setItem('token', newToken);
+      setToken(newToken);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, registerParent, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, registerParent, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

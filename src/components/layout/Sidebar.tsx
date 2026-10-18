@@ -22,6 +22,7 @@ import {
   UserCheck,
   Bell,
   QrCode,
+  User,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -63,6 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { label: 'Uang Saku Siswa', href: '/admin/allowances', icon: Wallet },
     { label: 'Informasi Sekolah', href: '/admin/academics', icon: GraduationCap },
     { label: 'Pusat Notifikasi', href: '/admin/notifications', icon: Bell },
+    { label: 'Profile', href: '/profile', icon: User },
   ];
 
   const parentNav = [
@@ -73,6 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { label: 'Nilai & Rapor', href: '/parent/grades', icon: BookOpen },
     { label: 'Uang Saku', href: '/parent/allowance', icon: Wallet },
     { label: 'Info Sekolah', href: '/parent/academics', icon: GraduationCap },
+    { label: 'Profile', href: '/profile', icon: User },
   ];
 
   const guruNav = [
@@ -82,6 +85,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { label: 'Mata Pelajaran', href: '/admin/subjects', icon: BookMarked },
     { label: 'Rapor & Nilai', href: '/admin/grades', icon: FileSpreadsheet },
     { label: 'Informasi Sekolah', href: '/admin/academics', icon: GraduationCap },
+    { label: 'Pusat Notifikasi', href: '/admin/notifications', icon: Bell },
+    { label: 'Profile', href: '/profile', icon: User },
   ];
 
   const navItems = isStaffOrAdmin
@@ -120,6 +125,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <button
             onClick={onClose}
             className="md:hidden text-slate-400 hover:text-slate-700 p-1 rounded-lg"
+            title="Tutup Menu"
           >
             <X className="w-5 h-5" />
           </button>
@@ -154,22 +160,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* User Profile Footer */}
         <div className="p-4 border-t border-emerald-100 bg-emerald-50/40">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-9 h-9 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-white text-xs shadow-sm">
+            <Link
+              href="/profile"
+              onClick={onClose}
+              className="flex items-center gap-3 overflow-hidden flex-1 group hover:opacity-90 transition-opacity"
+              title="Buka Halaman Profile"
+            >
+              <div className="w-9 h-9 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-white text-xs shadow-sm group-hover:bg-emerald-800 transition-colors shrink-0">
                 {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </div>
               <div className="truncate">
-                <p className="text-xs font-bold text-slate-900 truncate">{user?.name}</p>
+                <p className="text-xs font-bold text-slate-900 truncate group-hover:text-emerald-700 transition-colors">
+                  {user?.name}
+                </p>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold capitalize border border-emerald-200">
                   {formatRoleName(user?.role)}
                 </span>
               </div>
-            </div>
+            </Link>
 
             <button
               onClick={logout}
               title="Logout"
-              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shrink-0 ml-1"
             >
               <LogOut className="w-4 h-4" />
             </button>
