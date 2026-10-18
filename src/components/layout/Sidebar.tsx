@@ -137,7 +137,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             MENU UTAMA ({isStaffOrAdmin ? (user?.role === 'guru' ? 'GURU' : user?.role === 'staff' ? 'STAFF / TU' : 'ADMIN SEKOLAH') : 'ORANG TUA'})
           </p>
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              pathname === item.href ||
+              (item.href !== '/parent/dashboard' &&
+                item.href !== '/admin/dashboard' &&
+                item.href !== '/profile' &&
+                pathname.startsWith(item.href + '/'));
             const Icon = item.icon;
             return (
               <Link

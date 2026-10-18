@@ -78,7 +78,11 @@ export const BottomNav: React.FC = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-emerald-100 px-2 py-1.5 flex items-center justify-around md:hidden shadow-lg shadow-emerald-900/10">
       {navItems.map((item) => {
-        const isActive = pathname === item.href;
+        const isActive =
+          pathname === item.href ||
+          (item.href !== '/parent/dashboard' &&
+            item.href !== '/admin/dashboard' &&
+            pathname.startsWith(item.href + '/'));
         const Icon = item.icon;
         const showBadge = (item as any).hasBadge && unreadCount > 0;
 
